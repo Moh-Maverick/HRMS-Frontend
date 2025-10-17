@@ -8,7 +8,7 @@ export default function EmployeeLeavePage() {
     const [to, setTo] = useState('')
     const [type, setType] = useState('Casual')
     const [reason, setReason] = useState('')
-    const [list, setList] = useState<any[]>([])
+    const [list, setList] = useState<Array<{ id: string; from: string; to: string; type: string; reason: string; days: number; status: string }>>([])
 
     useEffect(() => {
         Api.getLeaves().then((items) => setList(items as any))
