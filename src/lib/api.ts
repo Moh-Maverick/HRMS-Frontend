@@ -16,7 +16,7 @@ import {
     fsGetUsers,
     fsSaveProfile,
     fsScheduleInterview,
-  fsGetMyLeaves,
+    fsGetMyLeaves,
     fsUpdateCandidateStatus,
     fsUpdateDepartment,
     fsUpdateJob,
@@ -73,7 +73,7 @@ export const Api = {
 
     // Employee
     getPayroll: async () => ({ month: 'Oct', amount: 95000, status: 'Processed' }),
-  getLeaves: async () => isFs() ? fsGetMyLeaves() : ([{ id: 'l1', from: '2025-10-12', to: '2025-10-13', type: 'Sick', reason: 'Fever', days: 2, status: 'approved' }]),
+    getLeaves: async () => isFs() ? fsGetMyLeaves() : ([{ id: 'l1', from: '2025-10-12', to: '2025-10-13', type: 'Sick', reason: 'Fever', days: 2, status: 'approved' }]),
     submitLeave: async (payload: { from: string; to: string; type: string; reason: string }) => isFs() ? (await import('@/lib/firestoreApi')).fsSubmitLeave(payload) : ({ success: true }),
     submitFeedback: async (text: string) => isFs() ? (await import('@/lib/firestoreApi')).fsSubmitFeedback(text) : ({ success: true }),
     saveProfile: async (payload: any) => isFs() ? fsSaveProfile(payload) : ({ success: true }),

@@ -11,8 +11,7 @@ export default function EmployeeLeavePage() {
     const [list, setList] = useState<any[]>([])
 
     useEffect(() => {
-        // For Firestore mode, we could load personal leaves; fallback mock
-        setList([{ id: 'l1', days: 2, reason: 'Medical', status: 'approved' }])
+        Api.getLeaves().then((items) => setList(items as any))
     }, [])
 
     return (
@@ -42,15 +41,25 @@ export default function EmployeeLeavePage() {
                     </div>
                 </div>
                 <div className="flex justify-end mt-2">
-                    <button onClick={async () => { await Api.submitLeave({ from, to, type, reason }); setReason(''); }} className="px-3 py-2 rounded-md bg-primary text-white hover:bg-accent transition-colors">Submit</button>
+                    <button onClick={async () => { await Api.submitLeave({ from, to, type, reason }); const items = await Api.getLeaves(); setList(items as any); setReason('') }} className="px-3 py-2 rounded-md bg-primary text-white hover:bg-accent transition-colors">Submit</button>
                 </div>
             </Card>
             <Card title="My Requests">
-                <ul className="text-sm text-gray-700 space-y-1">
+                <div className="grid md:grid-cols-2 gap-3">
                     {list.map((l) => (
-                        <li key={l.id}>{l.from || '-'} → {l.to || '-'} • {l.type || 'Casual'} • {l.days || '-'} day(s) • {l.reason} • {l.status || 'pending'}</li>
+                        <div key={l.id} className="rounded-lg border border-gray-100 bg-white p-3 shadow-sm">
+                            <div className="flex items-center justify-between mb-1">
+                                <div className="text-sm font-medium text-gray-800">{l.type || 'Casual'} Leave</div>
+                                <span className={`text-xs px-2 py-1 rounded-full ${l.status === 'approved' ? 'bg-emerald-50 text-emerald-700' : l.status === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>{l.status || 'pending'}</span>
+                            </div>
+                            <div className="text-sm text-gray-700">
+                                <div className="mb-1"><span className="font-medium">When:</span> {l.from || '-'} → {l.to || '-'}</div>
+                                <div className="mb-1"><span className="font-medium">Days:</span> {l.days || '-'}</div>
+                                <div className=""><span className="font-medium">Reason:</span> {l.reason || '-'}</div>
+                            </div>
+                        </div>
                     ))}
-                </ul>
+                </div>
             </Card>
         </div>
     )
