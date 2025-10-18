@@ -208,3 +208,182 @@ export async function fsGetTeamMembers() {
     const snap = await getDocs(query(collection(db, 'users'), where('managerId', '==', user.uid)))
     return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
 }
+
+// CANDIDATE SPECIFIC FUNCTIONS
+export async function fsGetAvailableJobs() {
+    const snap = await getDocs(query(collection(db, 'jobs'), where('status', '==', 'Open')))
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+}
+
+export async function fsApplyForJob(jobId: string, applicationData: any) {
+    const uid = auth.currentUser?.uid
+    if (!uid) return { success: false }
+
+    const application = {
+        uid,
+        jobId,
+        ...applicationData,
+        status: 'pending',
+        appliedAt: Date.now()
+    }
+
+    const ref = await addDoc(collection(db, 'applications'), application)
+    return { id: ref.id, ...application }
+}
+
+export async function fsGetCandidateApplications() {
+    const uid = auth.currentUser?.uid
+    if (!uid) return []
+
+    const snap = await getDocs(query(collection(db, 'applications'), where('uid', '==', uid)))
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+}
+
+export async function fsGetCandidateInterviews() {
+    const uid = auth.currentUser?.uid
+    if (!uid) return []
+
+    const snap = await getDocs(query(collection(db, 'interviews'), where('candidate', '==', uid)))
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+}
+
+export async function fsGetCandidateProfile() {
+    const uid = auth.currentUser?.uid
+    if (!uid) return null
+
+    const docRef = doc(db, 'candidateProfiles', uid)
+    const docSnap = await getDoc(docRef)
+
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() }
+    }
+    return null
+}
+
+export async function fsUpdateCandidateProfile(profileData: any) {
+    const uid = auth.currentUser?.uid
+    if (!uid) return { success: false }
+
+    const docRef = doc(db, 'candidateProfiles', uid)
+    try {
+        await updateDoc(docRef, profileData)
+    } catch {
+        // If document doesn't exist, create it
+        await addDoc(collection(db, 'candidateProfiles'), { uid, ...profileData })
+    }
+    return { success: true }
+}
+
+// EMPLOYEE SPECIFIC FUNCTIONS
+export async function fsGetUserProfile() {
+    const uid = auth.currentUser?.uid
+    if (!uid) return null
+
+    const docRef = doc(db, 'profiles', uid)
+    const docSnap = await getDoc(docRef)
+
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() }
+    }
+    return null
+}
+
+export async function fsUpdateUserProfile(profileData: any) {
+    const uid = auth.currentUser?.uid
+    if (!uid) return { success: false }
+
+    const docRef = doc(db, 'profiles', uid)
+    try {
+        await updateDoc(docRef, profileData)
+    } catch {
+        // If document doesn't exist, create it
+        await addDoc(collection(db, 'profiles'), { uid, ...profileData })
+    }
+    return { success: true }
+}
+
+export async function fsGetFeedback() {
+    const uid = auth.currentUser?.uid
+    if (!uid) return []
+
+    const snap = await getDocs(query(collection(db, 'feedbacks'), where('uid', '==', uid)))
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+}
+
+export async function fsCreateFeedback(feedbackData: any) {
+    const uid = auth.currentUser?.uid
+    if (!uid) return { success: false }
+
+    const feedback = {
+        uid,
+        ...feedbackData,
+        createdAt: Date.now()
+    }
+
+    const ref = await addDoc(collection(db, 'feedbacks'), feedback)
+    return { id: ref.id, ...feedback }
+}
+
+export async function fsCreateLeaveRequest(leaveData: any) {
+    const uid = auth.currentUser?.uid
+    if (!uid) return { success: false }
+
+    const fromDate = new Date(leaveData.from)
+    const toDate = new Date(leaveData.to)
+    const ms = Math.max(0, toDate.getTime() - fromDate.getTime())
+    const days = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)) + 1)
+
+    const leave = {
+        uid,
+        ...leaveData,
+        days,
+        status: 'pending',
+        createdAt: Date.now()
+    }
+
+    const ref = await addDoc(collection(db, 'leaves'), leave)
+    return { id: ref.id, ...leave }
+}
+
+// MANAGER SPECIFIC FUNCTIONS
+export async function fsGetManagerFeedback() {
+    const uid = auth.currentUser?.uid
+    if (!uid) return []
+
+    // Get feedback for team members
+    const teamMembers = await fsGetTeamMembers()
+    const teamMemberIds = teamMembers.map(member => member.id)
+
+    if (teamMemberIds.length === 0) return []
+
+    const snap = await getDocs(query(collection(db, 'feedbacks'), where('uid', 'in', teamMemberIds)))
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+}
+
+export async function fsCreateManagerFeedback(feedbackData: any) {
+    const uid = auth.currentUser?.uid
+    if (!uid) return { success: false }
+
+    const feedback = {
+        managerId: uid,
+        ...feedbackData,
+        createdAt: Date.now()
+    }
+
+    const ref = await addDoc(collection(db, 'managerFeedbacks'), feedback)
+    return { id: ref.id, ...feedback }
+}
+
+export async function fsGetTeamPerformance() {
+    const uid = auth.currentUser?.uid
+    if (!uid) return []
+
+    // Get performance data for team members
+    const teamMembers = await fsGetTeamMembers()
+    const teamMemberIds = teamMembers.map(member => member.id)
+
+    if (teamMemberIds.length === 0) return []
+
+    const snap = await getDocs(query(collection(db, 'performance'), where('uid', 'in', teamMemberIds)))
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+}
