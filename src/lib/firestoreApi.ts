@@ -247,18 +247,19 @@ export async function fsGetCandidateInterviews() {
     return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
 }
 
-export async function fsGetCandidateProfile() {
-    const uid = auth.currentUser?.uid
-    if (!uid) return null
+export const fsGetCandidateProfile = async () => {
+    const user = auth.currentUser;
+    if (!user) return null;
 
-    const docRef = doc(db, 'candidateProfiles', uid)
-    const docSnap = await getDoc(docRef)
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() }
+        return { id: docSnap.id, ...docSnap.data() } as any;
+    } else {
+        return null;
     }
-    return null
-}
+};
 
 export async function fsUpdateCandidateProfile(profileData: any) {
     const uid = auth.currentUser?.uid

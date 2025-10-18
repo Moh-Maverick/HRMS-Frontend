@@ -67,7 +67,7 @@ export default function CandidateJobsPage() {
         marks: '',
         experience: '',
         skills: '',
-        resume: null,
+        resume: null as File | null,
         coverLetter: ''
     })
 
@@ -259,7 +259,7 @@ export default function CandidateJobsPage() {
                                 <Textarea
                                     id="experience"
                                     value={applicationData.experience}
-                                    onChange={(e) => setApplicationData({ ...applicationData, experience: e.target.value })}
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setApplicationData({ ...applicationData, experience: e.target.value })}
                                     className="bg-white border-gray-300 min-h-[100px]"
                                     placeholder="Describe your work experience, projects, and achievements..."
                                     required
@@ -270,7 +270,7 @@ export default function CandidateJobsPage() {
                                 <Textarea
                                     id="skills"
                                     value={applicationData.skills}
-                                    onChange={(e) => setApplicationData({ ...applicationData, skills: e.target.value })}
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setApplicationData({ ...applicationData, skills: e.target.value })}
                                     className="bg-white border-gray-300 min-h-[80px]"
                                     placeholder="List your technical skills, programming languages, tools, etc."
                                     required
@@ -312,7 +312,7 @@ export default function CandidateJobsPage() {
                                 <Textarea
                                     id="coverLetter"
                                     value={applicationData.coverLetter}
-                                    onChange={(e) => setApplicationData({ ...applicationData, coverLetter: e.target.value })}
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setApplicationData({ ...applicationData, coverLetter: e.target.value })}
                                     className="bg-white border-gray-300 min-h-[120px]"
                                     placeholder="Write a cover letter explaining why you're interested in this position..."
                                 />
@@ -394,7 +394,7 @@ export default function CandidateJobsPage() {
                                     </div>
                                     <p className="text-sm text-gray-700 mb-2">{job.description}</p>
                                     <div className="flex flex-wrap gap-2 mb-2">
-                                        {job.requirements?.map((req, idx) => (
+                                        {job.requirements?.map((req: string, idx: number) => (
                                             <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
                                                 {req}
                                             </span>

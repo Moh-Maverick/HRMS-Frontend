@@ -1,18 +1,41 @@
 "use client"
+
 import { GlassCard } from '@/components/dashboard/GlassCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { User, Mail, Phone, FileText, Upload, MapPin, GraduationCap, Briefcase } from 'lucide-react'
+import {
+  User,
+  Mail,
+  Phone,
+  FileText,
+  Upload,
+  MapPin,
+  GraduationCap,
+  Briefcase
+} from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { fsGetCandidateProfile, fsUpdateCandidateProfile } from '@/lib/firestoreApi'
 
+// ✅ Define the structure of a candidate profile
+interface CandidateProfile {
+  fullName?: string
+  email?: string
+  phone?: string
+  location?: string
+  summary?: string
+  skills?: string
+  experience?: string
+  education?: string
+  resume?: File | string | null
+}
+
 export default function CandidateProfilePage() {
-  const [profile, setProfile] = useState<any>({})
+  const [profile, setProfile] = useState<CandidateProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CandidateProfile>({
     fullName: '',
     email: '',
     phone: '',
@@ -28,51 +51,57 @@ export default function CandidateProfilePage() {
     const fetchProfile = async () => {
       try {
         const profileData = await fsGetCandidateProfile()
-        setProfile(profileData)
-        setFormData({
-          fullName: profileData.fullName || '',
-          email: profileData.email || '',
-          phone: profileData.phone || '',
-          location: profileData.location || '',
-          summary: profileData.summary || '',
-          skills: profileData.skills || '',
-          experience: profileData.experience || '',
-          education: profileData.education || '',
-          resume: profileData.resume || null
-        })
+        // ✅ Set both profile and formData safely with defaults
+        const safeProfile = {
+          fullName: profileData?.fullName || '',
+          email: profileData?.email || '',
+          phone: profileData?.phone || '',
+          location: profileData?.location || '',
+          summary: profileData?.summary || '',
+          skills: profileData?.skills || '',
+          experience: profileData?.experience || '',
+          education: profileData?.education || '',
+          resume: profileData?.resume || null
+        }
+
+        setProfile(safeProfile)
+        setFormData(safeProfile)
       } catch (error) {
         console.error('Error fetching profile:', error)
       } finally {
         setLoading(false)
       }
     }
+
     fetchProfile()
   }, [])
+
 
   const handleSave = async () => {
     try {
       await fsUpdateCandidateProfile(formData)
       setIsEditing(false)
-      // Refresh profile data
-      const profileData = await fsGetCandidateProfile()
-      setProfile(profileData)
+      const updatedProfile = await fsGetCandidateProfile()
+      setProfile(updatedProfile)
     } catch (error) {
       console.error('Error updating profile:', error)
     }
   }
 
   const handleCancel = () => {
-    setFormData({
-      fullName: profile.fullName || '',
-      email: profile.email || '',
-      phone: profile.phone || '',
-      location: profile.location || '',
-      summary: profile.summary || '',
-      skills: profile.skills || '',
-      experience: profile.experience || '',
-      education: profile.education || '',
-      resume: profile.resume || null
-    })
+    if (profile) {
+      setFormData({
+        fullName: profile.fullName || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        location: profile.location || '',
+        summary: profile.summary || '',
+        skills: profile.skills || '',
+        experience: profile.experience || '',
+        education: profile.education || '',
+        resume: profile.resume ?? null
+      })
+    }
     setIsEditing(false)
   }
 
@@ -96,6 +125,7 @@ export default function CandidateProfilePage() {
 
   return (
     <div className="space-y-6 max-w-4xl">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h2>
@@ -119,7 +149,7 @@ export default function CandidateProfilePage() {
         </div>
       </div>
 
-      {/* Basic Information */}
+      {/* Basic Info */}
       <GlassCard delay={0.1}>
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 rounded-lg bg-orange-100 border border-orange-200">
@@ -130,49 +160,56 @@ export default function CandidateProfilePage() {
 
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Full Name */}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-gray-700">Full Name</Label>
               <Input
                 id="name"
-                value={formData.fullName}
+                value={formData.fullName || ''}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 className="bg-white border-gray-300"
                 disabled={!isEditing}
               />
             </div>
+
+            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   id="email"
-                  value={formData.email}
+                  value={formData.email || ''}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="pl-10 bg-white border-gray-300"
                   disabled={!isEditing}
                 />
               </div>
             </div>
+
+            {/* Phone */}
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-gray-700">Phone</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   id="phone"
-                  value={formData.phone}
+                  value={formData.phone || ''}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="pl-10 bg-white border-gray-300"
                   disabled={!isEditing}
                 />
               </div>
             </div>
+
+            {/* Location */}
             <div className="space-y-2">
               <Label htmlFor="location" className="text-gray-700">Location</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   id="location"
-                  value={formData.location}
+                  value={formData.location || ''}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   className="pl-10 bg-white border-gray-300"
                   disabled={!isEditing}
@@ -181,11 +218,12 @@ export default function CandidateProfilePage() {
             </div>
           </div>
 
+          {/* Summary */}
           <div className="space-y-2">
             <Label htmlFor="summary" className="text-gray-700">Professional Summary</Label>
             <Textarea
               id="summary"
-              value={formData.summary}
+              value={formData.summary || ''}
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
               className="bg-white border-gray-300 min-h-[100px]"
               placeholder="Tell us about yourself, your skills, and career goals..."
@@ -195,7 +233,7 @@ export default function CandidateProfilePage() {
         </div>
       </GlassCard>
 
-      {/* Skills */}
+      {/* Skills & Experience */}
       <GlassCard delay={0.2}>
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 rounded-lg bg-blue-100 border border-blue-200">
@@ -209,7 +247,7 @@ export default function CandidateProfilePage() {
             <Label htmlFor="skills" className="text-gray-700">Skills</Label>
             <Textarea
               id="skills"
-              value={formData.skills}
+              value={formData.skills || ''}
               onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
               className="bg-white border-gray-300 min-h-[80px]"
               placeholder="List your technical skills, programming languages, tools, etc."
@@ -221,7 +259,7 @@ export default function CandidateProfilePage() {
             <Label htmlFor="experience" className="text-gray-700">Work Experience</Label>
             <Textarea
               id="experience"
-              value={formData.experience}
+              value={formData.experience || ''}
               onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
               className="bg-white border-gray-300 min-h-[120px]"
               placeholder="Describe your work experience, projects, and achievements..."
@@ -244,7 +282,7 @@ export default function CandidateProfilePage() {
           <Label htmlFor="education" className="text-gray-700">Educational Background</Label>
           <Textarea
             id="education"
-            value={formData.education}
+            value={formData.education || ''}
             onChange={(e) => setFormData({ ...formData, education: e.target.value })}
             className="bg-white border-gray-300 min-h-[100px]"
             placeholder="List your educational qualifications, degrees, certifications, etc."
