@@ -165,4 +165,41 @@ export async function fsSubmitFeedback(text: string) {
     return { success: true }
 }
 
+// EMPLOYEE: ATTENDANCE
+export async function fsGetMyAttendance() {
+    const uid = auth.currentUser?.uid
+    if (!uid) return []
+    const qSnap = await getDocs(query(collection(db, 'attendance'), where('uid', '==', uid)))
+    return qSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+}
+
+export async function fsMarkAttendance(status: 'present' | 'absent') {
+    const uid = auth.currentUser?.uid
+    if (!uid) return { success: false }
+    const today = new Date().toISOString().split('T')[0]
+    const timestamp = new Date().toISOString()
+
+    // Check if attendance already marked for today
+    const existingSnap = await getDocs(query(
+        collection(db, 'attendance'),
+        where('uid', '==', uid),
+        where('date', '==', today)
+    ))
+
+    if (existingSnap.docs.length > 0) {
+        // Update existing record
+        await updateDoc(doc(db, 'attendance', existingSnap.docs[0].id), { status, timestamp })
+    } else {
+        // Create new record
+        await addDoc(collection(db, 'attendance'), {
+            uid,
+            date: today,
+            status,
+            timestamp,
+            createdAt: Date.now()
+        })
+    }
+    return { success: true }
+}
+
 

@@ -1,15 +1,31 @@
 "use client"
-import { Card, Table, Modal } from '@/components/ui'
-import { Api } from '@/lib/api'
+import { GlassCard } from '@/components/dashboard/GlassCard'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Users, Search, Plus, Edit, Trash2, UserCheck, Shield, Briefcase } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { fsGetUsers, fsCreateUser, fsUpdateUser, fsDeleteUser } from '@/lib/firestoreApi'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([])
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [form, setForm] = useState<{ id?: string; name: string; email: string; role: string; department?: string }>({ name: '', email: '', role: 'employee' })
 
-  useEffect(() => { Api.getUsers().then(setUsers) }, [])
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const usersData = await fsGetUsers()
+        setUsers(usersData)
+      } catch (error) {
+        console.error('Error fetching users:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUsers()
+  }, [])
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase()
@@ -22,71 +38,254 @@ export default function AdminUsersPage() {
 
   const save = async () => {
     if (!form.name || !form.email) return
-    if (form.id) {
-      const updated = await Api.updateUser(form.id, form)
-      setUsers((prev) => prev.map((u) => (u.id === form.id ? { ...u, ...updated } : u)))
-    } else {
-      const created = await Api.createUser(form)
-      setUsers((prev) => [...prev, created])
+    try {
+      if (form.id) {
+        const updated = await fsUpdateUser(form.id, form)
+        setUsers((prev) => prev.map((u) => (u.id === form.id ? { ...u, ...updated } : u)))
+      } else {
+        const created = await fsCreateUser(form)
+        setUsers((prev) => [...prev, created])
+      }
+      setOpen(false)
+      setForm({ name: '', email: '', role: 'employee' })
+    } catch (error) {
+      console.error('Error saving user:', error)
     }
-    setOpen(false)
-    setForm({ name: '', email: '', role: 'employee' })
   }
 
   const remove = async (id: string) => {
-    await Api.deleteUser(id)
-    setUsers((prev) => prev.filter((u) => u.id !== id))
+    try {
+      await fsDeleteUser(id)
+      setUsers((prev) => prev.filter((u) => u.id !== id))
+    } catch (error) {
+      console.error('Error deleting user:', error)
+    }
+  }
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'admin': return <Shield className="h-4 w-4 text-red-400" />
+      case 'hr': return <UserCheck className="h-4 w-4 text-blue-400" />
+      case 'manager': return <Briefcase className="h-4 w-4 text-green-400" />
+      case 'employee': return <Users className="h-4 w-4 text-orange-400" />
+      default: return <Users className="h-4 w-4 text-muted-foreground" />
+    }
+  }
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-red-400/20 text-red-400'
+      case 'hr': return 'bg-blue-400/20 text-blue-400'
+      case 'manager': return 'bg-green-400/20 text-green-400'
+      case 'employee': return 'bg-orange-400/20 text-orange-400'
+      default: return 'bg-muted/20 text-muted-foreground'
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading users...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-800">User Management</h2>
-        <div className="flex gap-2">
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search users" className="border rounded-md px-3 py-2" />
-          <button onClick={() => setOpen(true)} className="px-3 py-2 rounded-md bg-primary text-white hover:bg-accent transition-colors">New User</button>
-        </div>
+    <div className="space-y-6 max-w-7xl">
+      <div>
+        <h2 className="text-3xl font-bold text-foreground mb-2">User Management</h2>
+        <p className="text-muted-foreground">Manage system users and their roles</p>
       </div>
-      <Card title="Users">
-        <Table
-          columns={[
-            { key: 'name', header: 'Name' },
-            { key: 'email', header: 'Email' },
-            { key: 'role', header: 'Role' },
-            { key: 'department', header: 'Department' },
-            {
-              key: 'actions',
-              header: 'Actions',
-              render: (row) => (
-                <div className="flex gap-2">
-                  <button onClick={() => { setForm(row); setOpen(true) }} className="px-2 py-1 rounded border border-primary text-primary hover:bg-primary hover:text-white transition-colors">Edit</button>
-                  <button onClick={() => remove(row.id)} className="px-2 py-1 rounded border border-red-500 text-red-600 hover:bg-red-500 hover:text-white transition-colors">Delete</button>
-                </div>
-              ),
-            },
-          ]}
-          data={filtered.map(u => ({ id: u.id, name: u?.name ?? '-', email: u?.email ?? '-', role: u?.role ?? '-', department: u?.department ?? '-' }))}
-        />
-      </Card>
 
-      <Modal open={open} title={form.id ? 'Edit User' : 'New User'} onClose={() => setOpen(false)}>
-        <div className="space-y-3">
-          <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Full name" className="w-full border rounded-md px-3 py-2" />
-          <input value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} placeholder="Email" className="w-full border rounded-md px-3 py-2" />
-          <select value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))} className="w-full border rounded-md px-3 py-2">
-            <option value="admin">Admin</option>
-            <option value="hr">HR</option>
-            <option value="manager">Manager</option>
-            <option value="employee">Employee</option>
-            <option value="candidate">Candidate</option>
-          </select>
-          <input value={form.department || ''} onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))} placeholder="Department (optional)" className="w-full border rounded-md px-3 py-2" />
-          <div className="flex justify-end gap-2">
-            <button onClick={() => setOpen(false)} className="px-3 py-2 rounded-md border">Cancel</button>
-            <button onClick={save} className="px-3 py-2 rounded-md bg-primary text-white hover:bg-accent transition-colors">Save</button>
+      {/* Search and Actions */}
+      <GlassCard delay={0}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-foreground">All Users</h3>
+          <Button onClick={() => setOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add User
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search users by name or email..."
+              className="pl-10"
+            />
           </div>
         </div>
-      </Modal>
+
+        <div className="space-y-3">
+          {filtered.map((user, index) => (
+            <div key={user.id || index} className="p-4 rounded-xl bg-muted/30 border border-glass-border hover:border-primary/50 transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground">{user.name || 'Unknown'}</h4>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                    {user.department && (
+                      <p className="text-xs text-muted-foreground">{user.department}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    {getRoleIcon(user.role)}
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getRoleColor(user.role)}`}>
+                      {user.role?.charAt(0).toUpperCase() + user.role?.slice(1)}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => { setForm(user); setOpen(true) }}
+                      className="border-glass-border"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => remove(user.id)}
+                      className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* User Statistics */}
+      <GlassCard delay={0.1}>
+        <h3 className="text-xl font-semibold text-foreground mb-4">User Statistics</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl bg-muted/30 border border-glass-border">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="h-4 w-4 text-primary" />
+              <span className="text-sm text-muted-foreground">Total Users</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{users.length}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-muted/30 border border-glass-border">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="h-4 w-4 text-red-400" />
+              <span className="text-sm text-muted-foreground">Admins</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{users.filter(u => u.role === 'admin').length}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-muted/30 border border-glass-border">
+            <div className="flex items-center gap-2 mb-2">
+              <UserCheck className="h-4 w-4 text-blue-400" />
+              <span className="text-sm text-muted-foreground">HR Staff</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{users.filter(u => u.role === 'hr').length}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-muted/30 border border-glass-border">
+            <div className="flex items-center gap-2 mb-2">
+              <Briefcase className="h-4 w-4 text-green-400" />
+              <span className="text-sm text-muted-foreground">Managers</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">{users.filter(u => u.role === 'manager').length}</p>
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* Modal */}
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <GlassCard className="w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-foreground">
+                {form.id ? 'Edit User' : 'Add New User'}
+              </h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpen(false)}
+              >
+                ×
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">Full Name</label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="Enter full name"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">Email</label>
+                <Input
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="Enter email address"
+                  type="email"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">Role</label>
+                <select
+                  value={form.role}
+                  onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg bg-card border border-glass-border text-foreground"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="hr">HR</option>
+                  <option value="manager">Manager</option>
+                  <option value="employee">Employee</option>
+                  <option value="candidate">Candidate</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">Department (Optional)</label>
+                <Input
+                  value={form.department || ''}
+                  onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}
+                  placeholder="Enter department"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                  className="border-glass-border"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={save}>
+                  {form.id ? 'Update' : 'Create'} User
+                </Button>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+      )}
     </div>
   )
 }
