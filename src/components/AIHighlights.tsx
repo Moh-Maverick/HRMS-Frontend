@@ -22,12 +22,13 @@ const aiSteps = [
 
 const AIHighlights = () => {
   return (
-    <section id="ai-highlights" className="py-20 bg-gradient-to-br from-primary/5 to-accent/5 relative overflow-hidden">
-      {/* Background decoration */}
+    <section id="ai-highlights" className="py-20 bg-background relative overflow-hidden">
+      {/* Background decorations */}
       <div className="absolute top-20 right-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
       <div className="absolute bottom-20 left-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl" />
-      
+
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
+        {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -43,74 +44,62 @@ const AIHighlights = () => {
           </p>
         </motion.div>
 
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="bg-white/70 backdrop-blur-lg border border-border rounded-3xl p-8 lg:p-12 shadow-2xl"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-              {aiSteps.map((step, index) => (
-                <div key={index} className="relative">
-                  <motion.div
-                    initial={{ opacity: 0, x: -30 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.2 }}
-                    viewport={{ once: true }}
-                    className="text-center"
-                  >
-                    {/* Step number */}
-                    <div className="absolute -top-4 -left-4 w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center font-bold text-sm">
-                      {index + 1}
-                    </div>
-
-                    {/* Icon */}
-                    <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/70 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                      <step.icon className="text-primary-foreground" size={36} />
-                    </div>
-
-                    {/* Content */}
-                    <h3 className="text-xl font-bold text-foreground mb-3">
-                      {step.title}
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {step.description}
-                    </p>
-                  </motion.div>
-
-                  {/* Connector line (not on last item) */}
-                  {index < aiSteps.length - 1 && (
-                    <div className="hidden md:block absolute top-10 left-[60%] w-full h-0.5 bg-gradient-to-r from-primary/30 to-transparent" />
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Call-to-action */}
+        {/* AI cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
+          {aiSteps.map((step, index) => (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="mt-12 text-center"
+              whileHover={{ scale: 1.05, y: -5 }}
+              className="group relative bg-background/40 backdrop-blur-sm border border-white/10 rounded-2xl p-6 lg:p-8 hover:shadow-2xl hover:border-white/20 transition-all duration-300"
             >
-              <p className="text-lg font-medium text-foreground mb-6">
-                Ready to transform your HR operations?
-              </p>
-              <a
-                href="/auth/signup"
-                className="inline-flex items-center space-x-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-lg"
-              >
-                <span>Start Your Free Trial</span>
-              </a>
+              {/* Hover glass overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+              <div className="relative z-10 text-center">
+                <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 mx-auto">
+                  <step.icon className="text-primary-foreground" size={28} />
+                </div>
+
+                <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-accent transition-colors">
+                  {step.title}
+                </h3>
+
+                <p className="text-foreground/60 leading-relaxed">
+                  {step.description}
+                </p>
+              </div>
+
+              {/* Accent border on hover */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent to-primary rounded-b-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </motion.div>
-          </motion.div>
+          ))}
         </div>
+
+        {/* Call-to-action */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          viewport={{ once: true }}
+          className="mt-12 text-center"
+        >
+          <p className="text-lg font-medium text-foreground mb-6">
+            Ready to transform your HR operations?
+          </p>
+          <a
+            href="/auth/signup"
+            className="inline-flex items-center space-x-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-lg"
+          >
+            <span>Start Your Free Trial</span>
+          </a>
+        </motion.div>
       </div>
     </section>
-  );
-};
+  )
+}
 
 export default AIHighlights;
