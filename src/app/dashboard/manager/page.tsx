@@ -1,54 +1,219 @@
 "use client"
-import { Sidebar, Card, Modal } from '@/components/ui'
-import { Api } from '@/lib/api'
+
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { StatsCard } from "@/components/ui/stats-card"
+import { GlassCard } from "@/components/ui/glass-card"
+import { Users, UserCheck, TrendingUp, Award, Clock } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/lib/auth'
+import { fsGetPendingLeaves, fsDecideLeave } from '@/lib/firestoreApi'
+
+const performanceData = [
+  { name: 'John D.', score: 92 },
+  { name: 'Sarah M.', score: 88 },
+  { name: 'Mike R.', score: 85 },
+  { name: 'Emily S.', score: 90 },
+  { name: 'David L.', score: 87 },
+]
+
+const teamMembers = [
+  { name: 'John Doe', role: 'Senior Developer', status: 'online' },
+  { name: 'Sarah Miller', role: 'UI Designer', status: 'online' },
+  { name: 'Mike Roberts', role: 'Backend Dev', status: 'offline' },
+  { name: 'Emily Stone', role: 'QA Engineer', status: 'online' },
+  { name: 'David Lee', role: 'DevOps', status: 'online' },
+  { name: 'Anna White', role: 'Frontend Dev', status: 'online' },
+]
 
 export default function ManagerDashboard() {
-    const { role } = useAuth()
-  const [attendance, setAttendance] = useState<{ present: number; absent: number; late: number } | null>(null)
   const [leaves, setLeaves] = useState<any[]>([])
-  const [open, setOpen] = useState(false)
-  const [review, setReview] = useState<{ employee: string; score: number; notes?: string }>({ employee: '', score: 80 })
-  useEffect(() => { Api.getAttendance().then(setAttendance); Api.getPendingLeaves().then(setLeaves) }, [])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const leavesData = await fsGetPendingLeaves()
+        setLeaves(leavesData)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const handleLeaveDecision = async (id: string, decision: 'approved' | 'rejected') => {
+    try {
+      await fsDecideLeave(id, decision)
+      setLeaves(prev => prev.filter(leave => leave.id !== id))
+    } catch (error) {
+      console.error('Error deciding leave:', error)
+    }
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout userRole="manager" userName="Team Manager">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-gray-600">Loading...</div>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   return (
-      <main className="flex-1 p-4 space-y-4">
-                <h1 className="text-xl font-semibold text-gray-800">Manager Dashboard</h1>
-                <div className="grid md:grid-cols-3 gap-4">
-                    <Card title="Present"><div className="text-3xl font-semibold">{attendance?.present ?? '-'}</div></Card>
-                    <Card title="Absent"><div className="text-3xl font-semibold">{attendance?.absent ?? '-'}</div></Card>
-                    <Card title="Late"><div className="text-3xl font-semibold">{attendance?.late ?? '-'}</div></Card>
+    <DashboardLayout userRole="manager" userName="Team Manager">
+      <div className="space-y-6 max-w-7xl">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Manager Dashboard</h2>
+          <p className="text-gray-600">Monitor your team's performance and activities</p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatsCard
+            icon={Users}
+            title="Team Members"
+            value="12"
+            subtitle="Active members"
+            delay={0}
+          />
+          <StatsCard
+            icon={UserCheck}
+            title="Present Today"
+            value="11"
+            subtitle="1 on leave"
+            trend={{ value: 92, isPositive: true }}
+            delay={0.1}
+          />
+          <StatsCard
+            icon={TrendingUp}
+            title="Avg Performance"
+            value="88%"
+            subtitle="Team average"
+            trend={{ value: 5, isPositive: true }}
+            delay={0.2}
+          />
+          <StatsCard
+            icon={Clock}
+            title="Leave Requests"
+            value={leaves.length}
+            subtitle="Pending approval"
+            delay={0.3}
+          />
+        </div>
+
+        {/* Team Performance & Leave Requests */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <GlassCard delay={0.4}>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Team Performance</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={performanceData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                <XAxis dataKey="name" stroke="rgba(0,0,0,0.5)" />
+                <YAxis stroke="rgba(0,0,0,0.5)" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(255,255,255,0.9)',
+                    border: '1px solid rgba(0,0,0,0.2)',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Bar dataKey="score" fill="#3B82F6" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </GlassCard>
+
+          <GlassCard delay={0.5}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Pending Leave Requests</h3>
+              <Button variant="outline" size="sm" className="border-gray-300">
+                View All
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {leaves.slice(0, 3).map((request, index) => (
+                <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-semibold text-gray-900">{request.employee || 'Unknown'}</p>
+                      <p className="text-sm text-gray-600">{request.type} • {request.days} days</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleLeaveDecision(request.id, 'approved')}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-gray-300"
+                      onClick={() => handleLeaveDecision(request.id, 'rejected')}
+                    >
+                      Reject
+                    </Button>
+                  </div>
                 </div>
-        <Card title="Pending Leave Approvals">
-          <div className="flex flex-col gap-2">
-            {leaves.map((lv) => (
-              <div key={lv.id} className="flex items-center justify-between text-sm">
-                <div>{lv.employee} • {lv.days} day(s) • {lv.reason}</div>
-                <div className="flex gap-2">
-                  <button onClick={async () => { await Api.decideLeave(lv.id, 'approved'); setLeaves((prev) => prev.filter(x => x.id !== lv.id)) }} className="px-2 py-1 rounded border border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors">Approve</button>
-                  <button onClick={async () => { await Api.decideLeave(lv.id, 'rejected'); setLeaves((prev) => prev.filter(x => x.id !== lv.id)) }} className="px-2 py-1 rounded border border-red-500 text-red-600 hover:bg-red-500 hover:text-white transition-colors">Reject</button>
+              ))}
+            </div>
+          </GlassCard>
+        </div>
+
+        {/* Team Members */}
+        <GlassCard delay={0.6}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-gray-900">Team Members</h3>
+            <Button variant="outline" className="border-gray-300">
+              View Details
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {teamMembers.map((member, index) => (
+              <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-blue-300 transition-all cursor-pointer">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold">{member.name[0]}</span>
+                  </div>
+                  <div className={`h-2 w-2 rounded-full ${member.status === 'online' ? 'bg-green-400' : 'bg-gray-400'}`} />
                 </div>
+                <h4 className="font-semibold text-gray-900 text-sm">{member.name}</h4>
+                <p className="text-xs text-gray-600">{member.role}</p>
               </div>
             ))}
           </div>
-        </Card>
-        <div className="flex justify-end">
-          <button onClick={() => setOpen(true)} className="px-3 py-2 rounded-md bg-primary text-white hover:bg-accent transition-colors">Submit Performance Review</button>
-        </div>
-        <Modal open={open} title="Submit Review" onClose={() => setOpen(false)}>
-          <div className="space-y-3">
-            <input value={review.employee} onChange={(e) => setReview((r) => ({ ...r, employee: e.target.value }))} placeholder="Employee name" className="w-full border rounded-md px-3 py-2" />
-            <input type="number" value={review.score} onChange={(e) => setReview((r) => ({ ...r, score: Number(e.target.value) }))} placeholder="Score" className="w-full border rounded-md px-3 py-2" />
-            <textarea value={review.notes || ''} onChange={(e) => setReview((r) => ({ ...r, notes: e.target.value }))} placeholder="Notes" className="w-full border rounded-md px-3 py-2" />
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setOpen(false)} className="px-3 py-2 rounded-md border">Cancel</button>
-              <button onClick={async () => { await Api.submitReview(review.employee, review.score, review.notes); setOpen(false) }} className="px-3 py-2 rounded-md bg-primary text-white hover:bg-accent transition-colors">Save</button>
-            </div>
+        </GlassCard>
+
+        {/* Quick Actions */}
+        <GlassCard delay={0.7}>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button className="h-auto py-4 flex-col gap-2">
+              <Award className="h-5 w-5" />
+              <span className="text-sm">Submit Review</span>
+            </Button>
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300">
+              <UserCheck className="h-5 w-5" />
+              <span className="text-sm">View Attendance</span>
+            </Button>
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300">
+              <Clock className="h-5 w-5" />
+              <span className="text-sm">Leave Requests</span>
+            </Button>
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300">
+              <Users className="h-5 w-5" />
+              <span className="text-sm">Team Report</span>
+            </Button>
           </div>
-        </Modal>
-      </main>
-    )
+        </GlassCard>
+      </div>
+    </DashboardLayout>
+  )
 }
 
 

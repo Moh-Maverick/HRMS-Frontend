@@ -12,7 +12,7 @@ type AuthContextValue = {
     role: UserRole | null
     loading: boolean
     login: (email: string, password: string) => Promise<void>
-    signup: (email: string, password: string, role: UserRole) => Promise<void>
+    signup: (email: string, password: string, role: UserRole, name?: string, department?: string) => Promise<void>
     logout: () => Promise<void>
 }
 
@@ -42,13 +42,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await signInWithEmailAndPassword(auth, email, password)
     }
 
-    const signup = async (email: string, password: string, role: UserRole) => {
+    const signup = async (email: string, password: string, role: UserRole, name?: string, department?: string) => {
         const cred = await createUserWithEmailAndPassword(auth, email, password)
-        await setDoc(doc(db, 'users', cred.user.uid), { email, role })
+        await setDoc(doc(db, 'users', cred.user.uid), { email, role, name: name || '', department: department || '' })
     }
 
     const logout = async () => {
         await signOut(auth)
+        window.location.href = '/'
     }
 
     return (

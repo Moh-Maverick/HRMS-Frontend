@@ -2,59 +2,190 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
 @layer base {
   :root {
-    --color-primary: 33 18 161;
-    /* #2112A1 */
-    --color-accent: 247 168 0;
-    /* #F7A800 */
-    --color-text: 51 51 51;
-    /* #333333 */
-    --color-background: 255 255 255;
-    /* #FFFFFF */
+    /* FWC Brand Colors - Dark Space Theme */
+    --background: 220 30% 6%;
+    --foreground: 0 0% 95%;
+
+    --card: 220 25% 10%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 220 25% 10%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Primary: Deep Blue #2112A1 */
+    --primary: 246 80% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: For glass cards */
+    --secondary: 220 20% 15%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 220 15% 20%;
+    --muted-foreground: 0 0% 65%;
+
+    /* Accent: Vibrant Orange/Yellow #F7A800 */
+    --accent: 42 100% 49%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 20% 20%;
+    --input: 220 20% 18%;
+    --ring: 42 100% 49%;
+
+    --radius: 1rem;
+
+    /* Glass-morphism effects */
+    --glass-bg: 220 30% 10% / 0.4;
+    --glass-border: 0 0% 100% / 0.1;
+
+    /* Gradients and glows */
+    --gradient-primary: linear-gradient(135deg, hsl(246 80% 35%), hsl(246 60% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(42 100% 49%), hsl(42 100% 60%));
+    --glow-primary: 0 20px 60px hsl(246 80% 50% / 0.4);
+    --glow-accent: 0 20px 60px hsl(42 100% 49% / 0.3);
   }
 
-  html,
-  body {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
+  .dark {
+    --background: 246 50% 8%;
+    --foreground: 0 0% 95%;
 
-  body {
-    @apply bg-background text-text antialiased;
-  }
+    --card: 246 40% 12%;
+    --card-foreground: 0 0% 95%;
 
-  a {
-    @apply text-primary hover:text-accent transition-colors;
+    --popover: 246 40% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 246 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 246 30% 15%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 246 25% 20%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 42 100% 55%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 246 30% 20%;
+    --input: 246 30% 20%;
+    --ring: 246 80% 60%;
+
+    --glass-bg: 0 0% 100% / 0.05;
+    --glass-border: 0 0% 100% / 0.1;
   }
 }
 
-@layer utilities {
-  .bg-primary {
-    background-color: rgb(var(--color-primary));
+@layer base {
+  * {
+    @apply border-border;
   }
 
-  .text-primary {
-    color: rgb(var(--color-primary));
+  body {
+    @apply bg-background text-foreground;
+    background: radial-gradient(ellipse at top, hsl(220 30% 8%), hsl(220 30% 4%));
+    min-height: 100vh;
+  }
+}
+
+/* Starfield animation */
+@keyframes twinkle {
+
+  0%,
+  100% {
+    opacity: 0.3;
   }
 
-  .border-primary {
-    border-color: rgb(var(--color-primary));
+  50% {
+    opacity: 1;
+  }
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle 3s infinite;
+}
+
+/* Custom animations */
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.5;
   }
 
-  .bg-accent {
-    background-color: rgb(var(--color-accent));
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
   }
 
-  .text-accent {
-    color: rgb(var(--color-accent));
+  50% {
+    transform: translateY(-20px);
   }
+}
 
-  .bg-background {
-    background-color: rgb(var(--color-background));
-  }
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
 
-  .text-text {
-    color: rgb(var(--color-text));
-  }
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+/* Auth pages full width override */
+.auth-page {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Glass morphism utilities */
+.backdrop-blur-glass {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.bg-glass {
+  background: hsl(var(--glass-bg));
+}
+
+.border-glass-border {
+  border-color: hsl(var(--glass-border));
+}
+
+/* Dark select dropdown styling */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
 }
