@@ -50,31 +50,32 @@ export default function CandidateProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const profileData = await fsGetCandidateProfile()
-        // ✅ Set both profile and formData safely with defaults
-        const safeProfile = {
-          fullName: profileData?.fullName || '',
-          email: profileData?.email || '',
-          phone: profileData?.phone || '',
-          location: profileData?.location || '',
-          summary: profileData?.summary || '',
-          skills: profileData?.skills || '',
-          experience: profileData?.experience || '',
-          education: profileData?.education || '',
-          resume: profileData?.resume || null
-        }
+        const profileData = await fsGetCandidateProfile();
 
-        setProfile(safeProfile)
-        setFormData(safeProfile)
+        // Set profile state (can be null)
+        setProfile(profileData || null);
+
+        // Set formData safely
+        setFormData({
+          fullName: profileData?.fullName ?? '',
+          email: profileData?.email ?? '',
+          phone: profileData?.phone ?? '',
+          location: profileData?.location ?? '',
+          summary: profileData?.summary ?? '',
+          skills: profileData?.skills ?? '',
+          experience: profileData?.experience ?? '',
+          education: profileData?.education ?? '',
+          resume: profileData?.resume ?? null,
+        });
       } catch (error) {
-        console.error('Error fetching profile:', error)
+        console.error('Error fetching profile:', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchProfile()
-  }, [])
+    fetchProfile();
+  }, []);
 
 
   const handleSave = async () => {
