@@ -1,80 +1,122 @@
 "use client"
-import { Card, Table, Modal } from '@/components/ui'
-import { Api } from '@/lib/api'
-import { useEffect, useMemo, useState } from 'react'
+import { GlassCard } from '@/components/dashboard/GlassCard'
+import { Button } from '@/components/ui/button'
+import { Briefcase, Plus, MapPin, Clock, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { fsGetJobs } from '@/lib/firestoreApi'
 
-export default function HrJobsPage() {
+export default function HRJobsPage() {
   const [jobs, setJobs] = useState<any[]>([])
-  const [open, setOpen] = useState(false)
-  const [form, setForm] = useState<{ id?: string; title: string; openings: number }>({ title: '', openings: 1 })
-  const [query, setQuery] = useState('')
-  useEffect(() => { Api.getJobs().then(setJobs) }, [])
+    const [loading, setLoading] = useState(true)
 
-  const filtered = useMemo(() => {
-    const q = query.toLowerCase()
-    return jobs.filter((j) => j.title.toLowerCase().includes(q))
-  }, [jobs, query])
+    useEffect(() => {
+        const fetchJobs = async () => {
+            try {
+                const jobsData = await fsGetJobs()
+                setJobs(jobsData)
+            } catch (error) {
+                console.error('Error fetching jobs:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchJobs()
+    }, [])
 
-  const save = async () => {
-    if (!form.title) return
-    if (form.id) {
-      const upd = await Api.updateJob(form.id, { title: form.title, openings: form.openings })
-      setJobs((prev) => prev.map((j) => (j.id === form.id ? { ...j, ...upd } : j)))
-    } else {
-      const created = await Api.createJob({ title: form.title, openings: form.openings })
-      setJobs((prev) => [...prev, created])
-    }
-    setOpen(false)
-    setForm({ title: '', openings: 1 })
-  }
-
-  const close = async (id: string) => {
-    const res = await Api.closeJob(id)
-    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, ...res } : j)))
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading jobs...</p>
+                </div>
+            </div>
+        )
   }
 
   return (
-    <div className="space-y-4">
+        <div className="space-y-6 max-w-7xl">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-800">Job Management</h2>
-        <div className="flex gap-2">
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search jobs" className="border rounded-md px-3 py-2" />
-          <button onClick={() => setOpen(true)} className="px-3 py-2 rounded-md bg-primary text-white hover:bg-accent transition-colors">New Job</button>
-        </div>
-      </div>
-      <Card title="Jobs">
-        <Table
-          columns={[
-            { key: 'title', header: 'Title' },
-            { key: 'openings', header: 'Openings' },
-            { key: 'status', header: 'Status' },
-            {
-              key: 'actions',
-              header: 'Actions',
-              render: (row) => (
-                <div className="flex gap-2 text-sm">
-                  <button onClick={() => { setForm({ id: row.id, title: row.title, openings: Number(row.openings) }); setOpen(true) }} className="px-2 py-1 rounded border border-primary text-primary hover:bg-primary hover:text-white transition-colors">Edit</button>
-                  <button onClick={() => close(row.id)} className="px-2 py-1 rounded border border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white transition-colors">Close</button>
+                <div>
+                    <h2 className="text-3xl font-bold text-foreground mb-2">Job Postings</h2>
+                    <p className="text-muted-foreground">Create and manage job listings</p>
                 </div>
-              ),
-            },
-          ]}
-          data={filtered.map(j => ({ id: j.id, title: j.title, openings: String(j.openings), status: j.status }))}
-        />
-      </Card>
+                <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create New Job
+                </Button>
+            </div>
 
-      <Modal open={open} title={form.id ? 'Edit Job' : 'New Job'} onClose={() => setOpen(false)}>
-        <div className="space-y-3">
-          <input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Job title" className="w-full border rounded-md px-3 py-2" />
-          <input type="number" value={form.openings} onChange={(e) => setForm((f) => ({ ...f, openings: Number(e.target.value) }))} placeholder="Openings" className="w-full border rounded-md px-3 py-2" />
-          <div className="flex justify-end gap-2">
-            <button onClick={() => setOpen(false)} className="px-3 py-2 rounded-md border">Cancel</button>
-            <button onClick={save} className="px-3 py-2 rounded-md bg-primary text-white hover:bg-accent transition-colors">Save</button>
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <GlassCard delay={0.1}>
+                    <div className="text-center">
+                        <p className="text-sm text-muted-foreground mb-1">Active Jobs</p>
+                        <p className="text-3xl font-bold text-accent">{jobs.length}</p>
+                    </div>
+                </GlassCard>
+                <GlassCard delay={0.15}>
+                    <div className="text-center">
+                        <p className="text-sm text-muted-foreground mb-1">Total Applicants</p>
+                        <p className="text-3xl font-bold text-foreground">145</p>
+                    </div>
+                </GlassCard>
+                <GlassCard delay={0.2}>
+                    <div className="text-center">
+                        <p className="text-sm text-muted-foreground mb-1">This Week</p>
+                        <p className="text-3xl font-bold text-secondary">38</p>
+                    </div>
+                </GlassCard>
+                <GlassCard delay={0.25}>
+                    <div className="text-center">
+                        <p className="text-sm text-muted-foreground mb-1">Avg Time to Fill</p>
+                        <p className="text-3xl font-bold text-green-400">18d</p>
+                    </div>
+                </GlassCard>
+            </div>
+
+            {/* Job Listings */}
+            <div className="space-y-4">
+                {jobs.map((job, index) => (
+                    <GlassCard key={index} delay={0.3 + index * 0.05}>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-start gap-4">
+                                <div className="p-3 rounded-xl bg-accent/10 border border-accent/20">
+                                    <Briefcase className="h-6 w-6 text-accent" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-semibold text-foreground mb-2">{job.title}</h3>
+                                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                                        <span className="flex items-center gap-1">
+                                            <Briefcase className="h-4 w-4" />
+                                            {job.department || 'General'}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <MapPin className="h-4 w-4" />
+                                            {job.location || 'Remote'}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Clock className="h-4 w-4" />
+                                            {job.type || 'Full-time'}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Users className="h-4 w-4" />
+                                            {job.applicants || 0} applicants
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-2">Posted {job.posted || 'Recently'}</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button variant="outline" className="border-glass-border">
+                                    View Applicants
+                                </Button>
+                                <Button>Edit Job</Button>
+                            </div>
+                        </div>
+                    </GlassCard>
+                ))}
           </div>
-        </div>
-      </Modal>
     </div>
   )
 }
-
-

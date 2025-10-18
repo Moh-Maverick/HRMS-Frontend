@@ -94,7 +94,7 @@ export default function CandidateDashboard() {
                                             <p className="font-semibold text-gray-900">{app.company}</p>
                                             <p className="text-sm text-gray-600">{app.position}</p>
                                         </div>
-                                        <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                                        <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-800">
                                             {app.status}
                                         </span>
                                     </div>
@@ -120,7 +120,7 @@ export default function CandidateDashboard() {
                                             <p className="text-sm text-gray-600">{interview.position}</p>
                                             <p className="text-xs text-gray-500">{interview.type}</p>
                                         </div>
-                                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
+                                        <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-800">
                                             {interview.date}
                                         </span>
                                     </div>
@@ -147,7 +147,7 @@ export default function CandidateDashboard() {
                             <span className="text-sm text-gray-600">Personal Information</span>
                             <div className="flex items-center gap-2">
                                 <div className="w-32 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+                                    <div className="bg-orange-500 h-2 rounded-full" style={{ width: '100%' }}></div>
                                 </div>
                                 <span className="text-sm text-gray-600">100%</span>
                             </div>
@@ -156,7 +156,7 @@ export default function CandidateDashboard() {
                             <span className="text-sm text-gray-600">Work Experience</span>
                             <div className="flex items-center gap-2">
                                 <div className="w-32 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+                                    <div className="bg-orange-500 h-2 rounded-full" style={{ width: '85%' }}></div>
                                 </div>
                                 <span className="text-sm text-gray-600">85%</span>
                             </div>
@@ -165,7 +165,7 @@ export default function CandidateDashboard() {
                             <span className="text-sm text-gray-600">Skills & Certifications</span>
                             <div className="flex items-center gap-2">
                                 <div className="w-32 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '60%' }}></div>
+                                    <div className="bg-orange-500 h-2 rounded-full" style={{ width: '60%' }}></div>
                                 </div>
                                 <span className="text-sm text-gray-600">60%</span>
                             </div>
@@ -174,7 +174,7 @@ export default function CandidateDashboard() {
                             <span className="text-sm text-gray-600">Portfolio</span>
                             <div className="flex items-center gap-2">
                                 <div className="w-32 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-red-500 h-2 rounded-full" style={{ width: '30%' }}></div>
+                                    <div className="bg-orange-500 h-2 rounded-full" style={{ width: '30%' }}></div>
                                 </div>
                                 <span className="text-sm text-gray-600">30%</span>
                             </div>
@@ -186,19 +186,19 @@ export default function CandidateDashboard() {
                 <GlassCard delay={0.7}>
                     <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <Button className="h-auto py-4 flex-col gap-2">
+                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
                             <Briefcase className="h-5 w-5" />
                             <span className="text-sm">Apply for Jobs</span>
                         </Button>
-                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300">
+                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
                             <User className="h-5 w-5" />
                             <span className="text-sm">Update Profile</span>
                         </Button>
-                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300">
+                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
                             <FileText className="h-5 w-5" />
                             <span className="text-sm">Upload Resume</span>
                         </Button>
-                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300">
+                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
                             <Calendar className="h-5 w-5" />
                             <span className="text-sm">View Schedule</span>
                         </Button>

@@ -44,7 +44,7 @@ export default function EmployeeDashboard() {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
                     <p className="text-muted-foreground">Loading dashboard...</p>
                 </div>
             </div>
@@ -102,12 +102,22 @@ export default function EmployeeDashboard() {
                             <YAxis stroke="rgba(255,255,255,0.5)" />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'rgba(20, 27, 56, 0.9)',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    borderRadius: '8px'
+                                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                                    border: '2px solid #F7A800',
+                                    borderRadius: '12px',
+                                    color: '#FFFFFF',
+                                    fontWeight: 'bold',
+                                    fontSize: '14px',
+                                    padding: '12px 16px',
+                                    boxShadow: '0 8px 32px rgba(247, 168, 0, 0.3)'
+                                }}
+                                labelStyle={{
+                                    color: '#F7A800',
+                                    fontWeight: 'bold',
+                                    fontSize: '16px'
                                 }}
                             />
-                            <Line type="monotone" dataKey="hours" stroke="#5B9FFF" strokeWidth={3} />
+                            <Line type="monotone" dataKey="hours" stroke="#F7A800" strokeWidth={3} />
                         </LineChart>
                     </ResponsiveContainer>
                 </GlassCard>
@@ -162,7 +172,7 @@ export default function EmployeeDashboard() {
                     </div>
                     <div className="p-4 rounded-xl bg-muted/30 border border-glass-border">
                         <p className="text-sm text-muted-foreground mb-1">Net Salary</p>
-                        <p className="text-2xl font-bold text-primary">$4,420</p>
+                        <p className="text-2xl font-bold text-accent">$4,420</p>
                     </div>
                 </div>
             </GlassCard>
@@ -183,7 +193,7 @@ export default function EmployeeDashboard() {
                                 </div>
                                 <div className="flex gap-1">
                                     {[...Array(feedback.rating)].map((_, i) => (
-                                        <CheckCircle key={i} className="h-4 w-4 text-primary" />
+                                        <CheckCircle key={i} className="h-4 w-4 text-accent" />
                                     ))}
                                 </div>
                             </div>
@@ -197,19 +207,19 @@ export default function EmployeeDashboard() {
             <GlassCard delay={0.8}>
                 <h3 className="text-xl font-semibold text-foreground mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Button className="h-auto py-4 flex-col gap-2">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all">
                         <Clock className="h-5 w-5" />
                         <span className="text-sm">Apply Leave</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all">
                         <FileText className="h-5 w-5" />
                         <span className="text-sm">View Payslips</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all">
                         <Calendar className="h-5 w-5" />
                         <span className="text-sm">Check-In</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all">
                         <CheckCircle className="h-5 w-5" />
                         <span className="text-sm">Update Profile</span>
                     </Button>

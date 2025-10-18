@@ -51,7 +51,7 @@ export default function AdminDashboard() {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
                     <p className="text-muted-foreground">Loading dashboard...</p>
                 </div>
             </div>
@@ -110,12 +110,22 @@ export default function AdminDashboard() {
                             <YAxis stroke="rgba(255,255,255,0.5)" />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'rgba(20, 27, 56, 0.9)',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    borderRadius: '8px'
+                                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                                    border: '2px solid #F7A800',
+                                    borderRadius: '12px',
+                                    color: '#FFFFFF',
+                                    fontWeight: 'bold',
+                                    fontSize: '14px',
+                                    padding: '12px 16px',
+                                    boxShadow: '0 8px 32px rgba(247, 168, 0, 0.3)'
+                                }}
+                                labelStyle={{
+                                    color: '#F7A800',
+                                    fontWeight: 'bold',
+                                    fontSize: '16px'
                                 }}
                             />
-                            <Line type="monotone" dataKey="users" stroke="#FF8C42" strokeWidth={3} />
+                            <Line type="monotone" dataKey="users" stroke="#F7A800" strokeWidth={3} />
                         </LineChart>
                     </ResponsiveContainer>
                 </GlassCard>
@@ -129,12 +139,22 @@ export default function AdminDashboard() {
                             <YAxis stroke="rgba(255,255,255,0.5)" />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'rgba(20, 27, 56, 0.9)',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    borderRadius: '8px'
+                                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                                    border: '2px solid #F7A800',
+                                    borderRadius: '12px',
+                                    color: '#FFFFFF',
+                                    fontWeight: 'bold',
+                                    fontSize: '14px',
+                                    padding: '12px 16px',
+                                    boxShadow: '0 8px 32px rgba(247, 168, 0, 0.3)'
+                                }}
+                                labelStyle={{
+                                    color: '#F7A800',
+                                    fontWeight: 'bold',
+                                    fontSize: '16px'
                                 }}
                             />
-                            <Bar dataKey="count" fill="#5B9FFF" radius={[8, 8, 0, 0]} />
+                            <Bar dataKey="count" fill="#F7A800" radius={[8, 8, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </GlassCard>
@@ -144,7 +164,7 @@ export default function AdminDashboard() {
             <GlassCard delay={0.6}>
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-semibold text-foreground">AI Model Monitoring</h3>
-                    <Button variant="outline" className="border-glass-border">
+                    <Button variant="outline" className="border-glass-border" onClick={() => window.location.href = '/dashboard/admin/ai-monitor'}>
                         View Details
                     </Button>
                 </div>
@@ -158,7 +178,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="p-4 rounded-xl bg-muted/30 border border-glass-border">
                         <div className="flex items-center gap-2 mb-2">
-                            <TrendingUp className="h-4 w-4 text-primary" />
+                            <TrendingUp className="h-4 w-4 text-accent" />
                             <span className="text-sm text-muted-foreground">Error Rate</span>
                         </div>
                         <p className="text-2xl font-bold text-foreground">0.2%</p>
@@ -177,21 +197,21 @@ export default function AdminDashboard() {
             <GlassCard delay={0.7}>
                 <h3 className="text-xl font-semibold text-foreground mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Button className="h-auto py-4 flex-col gap-2">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={() => window.location.href = '/dashboard/admin/users'}>
                         <Users className="h-5 w-5" />
                         <span className="text-sm">Add User</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={() => window.location.href = '/dashboard/admin/departments'}>
                         <Building2 className="h-5 w-5" />
                         <span className="text-sm">New Department</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={() => window.location.href = '/dashboard/admin/analytics'}>
                         <FileText className="h-5 w-5" />
                         <span className="text-sm">Generate Report</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={() => window.location.href = '/dashboard/admin/settings'}>
                         <Cpu className="h-5 w-5" />
-                        <span className="text-sm">AI Settings</span>
+                        <span className="text-sm">Settings</span>
                     </Button>
                 </div>
             </GlassCard>

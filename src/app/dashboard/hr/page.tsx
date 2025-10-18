@@ -6,6 +6,7 @@ import { Briefcase, Users, Calendar, CheckCircle, Clock, XCircle } from "lucide-
 import { Button } from "@/components/ui/button"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { fsGetJobs, fsGetCandidates } from '@/lib/firestoreApi'
 
 const candidateStageData = [
@@ -22,9 +23,26 @@ const upcomingInterviews = [
 ]
 
 export default function HRDashboard() {
+    const router = useRouter()
     const [jobs, setJobs] = useState<any[]>([])
     const [candidates, setCandidates] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+
+    const handleCreateJob = () => {
+        router.push('/dashboard/hr/jobs')
+    }
+
+    const handleViewCandidates = () => {
+        router.push('/dashboard/hr/candidates')
+    }
+
+    const handleScheduleInterview = () => {
+        router.push('/dashboard/hr/interviews')
+    }
+
+    const handleSendOffer = () => {
+        router.push('/dashboard/hr/offers')
+    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -118,10 +136,21 @@ export default function HRDashboard() {
                             </Pie>
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: 'rgba(20, 27, 56, 0.9)',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    borderRadius: '8px'
+                                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                                    border: '2px solid #F7A800',
+                                    borderRadius: '12px',
+                                    color: '#FFFFFF',
+                                    fontWeight: 'bold',
+                                    fontSize: '14px',
+                                    padding: '12px 16px',
+                                    boxShadow: '0 8px 32px rgba(247, 168, 0, 0.3)'
                                 }}
+                                labelStyle={{
+                                    color: '#F7A800',
+                                    fontWeight: 'bold',
+                                    fontSize: '16px'
+                                }}
+                                formatter={(value, name) => [value, name]}
                             />
                             <Legend />
                         </PieChart>
@@ -143,7 +172,7 @@ export default function HRDashboard() {
                                         <p className="font-semibold text-foreground">{interview.candidate}</p>
                                         <p className="text-sm text-muted-foreground">{interview.position}</p>
                                     </div>
-                                    <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary">
+                                    <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent font-semibold">
                                         {interview.date}
                                     </span>
                                 </div>
@@ -161,7 +190,7 @@ export default function HRDashboard() {
             <GlassCard delay={0.6}>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-semibold text-foreground">Active Job Listings</h3>
-                    <Button className="gap-2">
+                    <Button className="gap-2" onClick={handleCreateJob}>
                         <Briefcase className="h-4 w-4" />
                         Create New Job
                     </Button>
@@ -172,7 +201,7 @@ export default function HRDashboard() {
                             <h4 className="font-semibold text-foreground mb-2">{job.title}</h4>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">{job.department || 'General'}</span>
-                                <span className="text-primary font-medium">{job.openings} openings</span>
+                                <span className="text-accent font-semibold">{job.openings} openings</span>
                             </div>
                         </div>
                     ))}
@@ -183,19 +212,19 @@ export default function HRDashboard() {
             <GlassCard delay={0.7}>
                 <h3 className="text-xl font-semibold text-foreground mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Button className="h-auto py-4 flex-col gap-2">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={handleCreateJob}>
                         <Briefcase className="h-5 w-5" />
                         <span className="text-sm">Post Job</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={handleScheduleInterview}>
                         <Calendar className="h-5 w-5" />
                         <span className="text-sm">Schedule Interview</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={handleSendOffer}>
                         <CheckCircle className="h-5 w-5" />
                         <span className="text-sm">Send Offer</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={handleViewCandidates}>
                         <Users className="h-5 w-5" />
                         <span className="text-sm">View Candidates</span>
                     </Button>

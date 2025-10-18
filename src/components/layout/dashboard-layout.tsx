@@ -35,7 +35,8 @@ const roleMenuItems = {
         { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard/admin" },
         { icon: Users, label: "User Management", path: "/dashboard/admin/users" },
         { icon: BarChart3, label: "Analytics", path: "/dashboard/admin/analytics" },
-        { icon: Cpu, label: "AI Models", path: "/dashboard/admin/ai-models" },
+        { icon: Cpu, label: "AI Models", path: "/dashboard/admin/ai-monitor" },
+        { icon: Settings, label: "Departments", path: "/dashboard/admin/departments" },
         { icon: Settings, label: "Settings", path: "/dashboard/admin/settings" },
     ],
     hr: [
@@ -81,7 +82,7 @@ export const DashboardLayout = ({ children, userRole, userName }: DashboardLayou
             <motion.header
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
-                className="fixed top-0 right-0 left-0 z-40 h-16 bg-white/50 backdrop-blur-sm border-b border-gray-200 shadow-sm"
+                className="fixed top-0 right-0 left-0 z-40 h-16 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm"
             >
                 <div className="h-full px-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">

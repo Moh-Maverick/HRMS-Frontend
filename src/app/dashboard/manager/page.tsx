@@ -116,12 +116,22 @@ export default function ManagerDashboard() {
                 <YAxis stroke="rgba(0,0,0,0.5)" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'rgba(255,255,255,0.9)',
-                    border: '1px solid rgba(0,0,0,0.2)',
-                    borderRadius: '8px'
+                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                    border: '2px solid #F7A800',
+                    borderRadius: '12px',
+                    color: '#FFFFFF',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    padding: '12px 16px',
+                    boxShadow: '0 8px 32px rgba(247, 168, 0, 0.3)'
+                  }}
+                  labelStyle={{
+                    color: '#F7A800',
+                    fontWeight: 'bold',
+                    fontSize: '16px'
                   }}
                 />
-                <Bar dataKey="score" fill="#3B82F6" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="score" fill="#F7A800" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </GlassCard>
@@ -175,10 +185,10 @@ export default function ManagerDashboard() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {teamMembers.map((member, index) => (
-              <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-blue-300 transition-all cursor-pointer">
+              <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-orange-300 transition-all cursor-pointer">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold">{member.name[0]}</span>
+                  <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                    <span className="text-orange-600 font-semibold">{member.name[0]}</span>
                   </div>
                   <div className={`h-2 w-2 rounded-full ${member.status === 'online' ? 'bg-green-400' : 'bg-gray-400'}`} />
                 </div>
@@ -193,19 +203,19 @@ export default function ManagerDashboard() {
         <GlassCard delay={0.7}>
           <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button className="h-auto py-4 flex-col gap-2">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
               <Award className="h-5 w-5" />
               <span className="text-sm">Submit Review</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
               <UserCheck className="h-5 w-5" />
               <span className="text-sm">View Attendance</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
               <Clock className="h-5 w-5" />
               <span className="text-sm">Leave Requests</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
               <Users className="h-5 w-5" />
               <span className="text-sm">Team Report</span>
             </Button>
