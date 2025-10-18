@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Star, MessageSquare, Users, Send, Award } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { fsGetManagerFeedback, fsCreateManagerFeedback } from '@/lib/firestoreApi'
+import { fsGetManagerFeedback, fsCreateManagerFeedback, fsGetTeamMembers } from '@/lib/firestoreApi'
 
 export default function ManagerFeedbackPage() {
     const [feedback, setFeedback] = useState<any[]>([])
