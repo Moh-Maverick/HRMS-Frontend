@@ -7,6 +7,7 @@ import { Users, UserCheck, TrendingUp, Award, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { fsGetPendingLeaves, fsDecideLeave } from '@/lib/firestoreApi'
 
 const performanceData = [
@@ -27,8 +28,25 @@ const teamMembers = [
 ]
 
 export default function ManagerDashboard() {
+  const router = useRouter()
   const [leaves, setLeaves] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  const handleSubmitReview = () => {
+    router.push('/dashboard/manager/performance')
+  }
+
+  const handleViewAttendance = () => {
+    router.push('/dashboard/manager/attendance')
+  }
+
+  const handleLeaveRequests = () => {
+    router.push('/dashboard/manager/leave-requests')
+  }
+
+  const handleTeamReport = () => {
+    router.push('/dashboard/manager/team')
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -203,19 +221,19 @@ export default function ManagerDashboard() {
         <GlassCard delay={0.7}>
           <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleSubmitReview}>
               <Award className="h-5 w-5" />
               <span className="text-sm">Submit Review</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleViewAttendance}>
               <UserCheck className="h-5 w-5" />
               <span className="text-sm">View Attendance</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleLeaveRequests}>
               <Clock className="h-5 w-5" />
               <span className="text-sm">Leave Requests</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
+            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleTeamReport}>
               <Users className="h-5 w-5" />
               <span className="text-sm">Team Report</span>
             </Button>

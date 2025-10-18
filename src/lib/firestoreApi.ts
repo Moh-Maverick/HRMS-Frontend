@@ -202,4 +202,9 @@ export async function fsMarkAttendance(status: 'present' | 'absent') {
     return { success: true }
 }
 
-
+export async function fsGetTeamMembers() {
+    const user = auth.currentUser
+    if (!user) throw new Error('Not authenticated')
+    const snap = await getDocs(query(collection(db, 'users'), where('managerId', '==', user.uid)))
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+}

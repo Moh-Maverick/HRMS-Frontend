@@ -6,6 +6,7 @@ import { GlassCard } from "@/components/ui/glass-card"
 import { User, Briefcase, Calendar, CheckCircle, Clock, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 const applicationStatus = [
     { company: 'TechCorp Inc.', position: 'Senior Developer', status: 'Interview Scheduled', date: 'Dec 28, 2024' },
@@ -19,7 +20,24 @@ const upcomingInterviews = [
 ]
 
 export default function CandidateDashboard() {
+    const router = useRouter()
     const [loading, setLoading] = useState(true)
+
+    const handleApplyForJobs = () => {
+        router.push('/dashboard/candidate/jobs')
+    }
+
+    const handleUpdateProfile = () => {
+        router.push('/dashboard/candidate/profile')
+    }
+
+    const handleUploadResume = () => {
+        router.push('/dashboard/candidate/profile')
+    }
+
+    const handleViewSchedule = () => {
+        router.push('/dashboard/candidate/interviews')
+    }
 
     useEffect(() => {
         // Simulate loading
@@ -186,19 +204,19 @@ export default function CandidateDashboard() {
                 <GlassCard delay={0.7}>
                     <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
+                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleApplyForJobs}>
                             <Briefcase className="h-5 w-5" />
                             <span className="text-sm">Apply for Jobs</span>
                         </Button>
-                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
+                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleUpdateProfile}>
                             <User className="h-5 w-5" />
                             <span className="text-sm">Update Profile</span>
                         </Button>
-                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
+                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleUploadResume}>
                             <FileText className="h-5 w-5" />
                             <span className="text-sm">Upload Resume</span>
                         </Button>
-                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all">
+                        <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleViewSchedule}>
                             <Calendar className="h-5 w-5" />
                             <span className="text-sm">View Schedule</span>
                         </Button>

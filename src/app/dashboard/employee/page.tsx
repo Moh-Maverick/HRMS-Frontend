@@ -6,6 +6,7 @@ import { Calendar, DollarSign, FileText, CheckCircle, Clock, XCircle } from "luc
 import { Button } from "@/components/ui/button"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { fsGetMyLeaves } from '@/lib/firestoreApi'
 
 const attendanceData = [
@@ -23,8 +24,25 @@ const recentLeaves = [
 ]
 
 export default function EmployeeDashboard() {
+    const router = useRouter()
     const [leaves, setLeaves] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+
+    const handleApplyLeave = () => {
+        router.push('/dashboard/employee/leave-request')
+    }
+
+    const handleViewPayslips = () => {
+        router.push('/dashboard/employee/payroll')
+    }
+
+    const handleCheckIn = () => {
+        router.push('/dashboard/employee/attendance')
+    }
+
+    const handleUpdateProfile = () => {
+        router.push('/dashboard/employee/profile')
+    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -207,19 +225,19 @@ export default function EmployeeDashboard() {
             <GlassCard delay={0.8}>
                 <h3 className="text-xl font-semibold text-foreground mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={handleApplyLeave}>
                         <Clock className="h-5 w-5" />
                         <span className="text-sm">Apply Leave</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={handleViewPayslips}>
                         <FileText className="h-5 w-5" />
                         <span className="text-sm">View Payslips</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={handleCheckIn}>
                         <Calendar className="h-5 w-5" />
                         <span className="text-sm">Check-In</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-glass-border hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={handleUpdateProfile}>
                         <CheckCircle className="h-5 w-5" />
                         <span className="text-sm">Update Profile</span>
                     </Button>
