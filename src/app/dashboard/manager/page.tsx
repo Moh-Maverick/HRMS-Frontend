@@ -83,7 +83,7 @@ export default function ManagerDashboard() {
 
   return (
     <DashboardLayout userRole="manager" userName="Team Manager">
-      <div className="space-y-6 max-w-7xl">
+      <div className="space-y-6 w-full">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Manager Dashboard</h2>
           <p className="text-gray-600">Monitor your team's performance and activities</p>
@@ -124,8 +124,8 @@ export default function ManagerDashboard() {
         </div>
 
         {/* Team Performance & Leave Requests */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <GlassCard delay={0.4}>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <GlassCard delay={0.4} className="xl:col-span-2">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Team Performance</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={performanceData}>
@@ -193,29 +193,56 @@ export default function ManagerDashboard() {
           </GlassCard>
         </div>
 
-        {/* Team Members */}
-        <GlassCard delay={0.6}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-gray-900">Team Members</h3>
-            <Button variant="outline" className="border-gray-300">
-              View Details
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {teamMembers.map((member, index) => (
-              <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-orange-300 transition-all cursor-pointer">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
-                    <span className="text-orange-600 font-semibold">{member.name[0]}</span>
+        {/* Team Members & Recent Activity */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <GlassCard delay={0.6} className="xl:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Team Members</h3>
+              <Button variant="outline" className="border-gray-300">
+                View Details
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {teamMembers.map((member, index) => (
+                <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-orange-300 transition-all cursor-pointer">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                      <span className="text-orange-600 font-semibold">{member.name[0]}</span>
+                    </div>
+                    <div className={`h-2 w-2 rounded-full ${member.status === 'online' ? 'bg-green-400' : 'bg-gray-400'}`} />
                   </div>
-                  <div className={`h-2 w-2 rounded-full ${member.status === 'online' ? 'bg-green-400' : 'bg-gray-400'}`} />
+                  <h4 className="font-semibold text-gray-900 text-sm">{member.name}</h4>
+                  <p className="text-xs text-gray-600">{member.role}</p>
                 </div>
-                <h4 className="font-semibold text-gray-900 text-sm">{member.name}</h4>
-                <p className="text-xs text-gray-600">{member.role}</p>
-              </div>
-            ))}
-          </div>
-        </GlassCard>
+              ))}
+            </div>
+          </GlassCard>
+
+          <GlassCard delay={0.65}>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
+            <div className="space-y-3">
+              {[
+                { action: 'John Doe submitted a leave request', time: '2 hours ago', type: 'leave' },
+                { action: 'Sarah Miller completed performance review', time: '4 hours ago', type: 'review' },
+                { action: 'Mike Roberts updated project status', time: '6 hours ago', type: 'project' },
+                { action: 'Emily Stone attended team meeting', time: '1 day ago', type: 'meeting' },
+                { action: 'David Lee submitted timesheet', time: '1 day ago', type: 'timesheet' },
+              ].map((activity, index) => (
+                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                  <div className={`h-2 w-2 rounded-full mt-2 ${activity.type === 'leave' ? 'bg-yellow-500' :
+                    activity.type === 'review' ? 'bg-green-500' :
+                      activity.type === 'project' ? 'bg-blue-500' :
+                        activity.type === 'meeting' ? 'bg-purple-500' : 'bg-gray-500'
+                    }`} />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-900">{activity.action}</p>
+                    <p className="text-xs text-gray-500">{activity.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        </div>
 
         {/* Quick Actions */}
         <GlassCard delay={0.7}>

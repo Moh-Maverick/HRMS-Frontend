@@ -56,7 +56,7 @@ export default function CandidateDashboard() {
 
     return (
         <DashboardLayout userRole="candidate" userName="Candidate Name">
-            <div className="space-y-6 max-w-7xl">
+            <div className="space-y-6 w-full">
                 <div>
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">Candidate Dashboard</h2>
                     <p className="text-gray-600">Track your job applications and interview progress</p>
@@ -96,8 +96,8 @@ export default function CandidateDashboard() {
                 </div>
 
                 {/* Application Status & Upcoming Interviews */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <GlassCard delay={0.4}>
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <GlassCard delay={0.4} className="xl:col-span-2">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-xl font-semibold text-gray-900">Application Status</h3>
                             <Button variant="outline" size="sm" className="border-gray-300">
@@ -152,53 +152,80 @@ export default function CandidateDashboard() {
                     </GlassCard>
                 </div>
 
-                {/* Profile Completion */}
-                <GlassCard delay={0.6}>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-semibold text-gray-900">Profile Completion</h3>
-                        <Button variant="outline" className="border-gray-300">
-                            Edit Profile
-                        </Button>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Personal Information</span>
-                            <div className="flex items-center gap-2">
-                                <div className="w-32 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-orange-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+                {/* Profile Completion & Job Recommendations */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <GlassCard delay={0.6} className="xl:col-span-2">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-semibold text-gray-900">Profile Completion</h3>
+                            <Button variant="outline" className="border-gray-300">
+                                Edit Profile
+                            </Button>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">Personal Information</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                                        <div className="bg-orange-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+                                    </div>
+                                    <span className="text-sm text-gray-600">100%</span>
                                 </div>
-                                <span className="text-sm text-gray-600">100%</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">Work Experience</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                                        <div className="bg-orange-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+                                    </div>
+                                    <span className="text-sm text-gray-600">85%</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">Skills & Certifications</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                                        <div className="bg-orange-500 h-2 rounded-full" style={{ width: '60%' }}></div>
+                                    </div>
+                                    <span className="text-sm text-gray-600">60%</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">Portfolio</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                                        <div className="bg-orange-500 h-2 rounded-full" style={{ width: '30%' }}></div>
+                                    </div>
+                                    <span className="text-sm text-gray-600">30%</span>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Work Experience</span>
-                            <div className="flex items-center gap-2">
-                                <div className="w-32 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-orange-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+                    </GlassCard>
+
+                    <GlassCard delay={0.65}>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-4">Job Recommendations</h3>
+                        <div className="space-y-3">
+                            {[
+                                { title: 'Senior React Developer', company: 'TechCorp Inc.', match: '95%', salary: '₹12-18 LPA' },
+                                { title: 'Full Stack Engineer', company: 'StartupXYZ', match: '88%', salary: '₹10-15 LPA' },
+                                { title: 'Frontend Developer', company: 'Design Studio', match: '82%', salary: '₹8-12 LPA' },
+                                { title: 'UI/UX Developer', company: 'Creative Agency', match: '78%', salary: '₹9-14 LPA' },
+                            ].map((job, index) => (
+                                <div key={index} className="p-3 rounded-lg bg-gray-50 border border-gray-200 hover:border-orange-300 transition-all cursor-pointer">
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div>
+                                            <p className="font-semibold text-gray-900 text-sm">{job.title}</p>
+                                            <p className="text-xs text-gray-600">{job.company}</p>
+                                        </div>
+                                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
+                                            {job.match}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-gray-500">{job.salary}</p>
                                 </div>
-                                <span className="text-sm text-gray-600">85%</span>
-                            </div>
+                            ))}
                         </div>
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Skills & Certifications</span>
-                            <div className="flex items-center gap-2">
-                                <div className="w-32 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-orange-500 h-2 rounded-full" style={{ width: '60%' }}></div>
-                                </div>
-                                <span className="text-sm text-gray-600">60%</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Portfolio</span>
-                            <div className="flex items-center gap-2">
-                                <div className="w-32 bg-gray-200 rounded-full h-2">
-                                    <div className="bg-orange-500 h-2 rounded-full" style={{ width: '30%' }}></div>
-                                </div>
-                                <span className="text-sm text-gray-600">30%</span>
-                            </div>
-                        </div>
-                    </div>
-                </GlassCard>
+                    </GlassCard>
+                </div>
 
                 {/* Quick Actions */}
                 <GlassCard delay={0.7}>
