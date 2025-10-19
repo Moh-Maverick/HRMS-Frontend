@@ -1,4 +1,5 @@
 "use client"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { GlassCard } from '@/components/dashboard/GlassCard'
 import { Button } from '@/components/ui/button'
 import { Briefcase, Clock, Calendar, CheckCircle, XCircle, Eye } from 'lucide-react'
@@ -59,21 +60,24 @@ export default function CandidateApplicationsPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading applications...</p>
+            <DashboardLayout userRole="candidate" userName="Candidate Name">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Loading applications...</p>
+                    </div>
                 </div>
-            </div>
+            </DashboardLayout>
         )
     }
 
     return (
-        <div className="space-y-6 max-w-7xl">
-            <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">My Applications</h2>
-                <p className="text-gray-600">Track all your job applications and their status</p>
-            </div>
+        <DashboardLayout userRole="candidate" userName="Candidate Name">
+            <div className="space-y-6 w-full">
+                <div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">My Applications</h2>
+                    <p className="text-gray-600">Track all your job applications and their status</p>
+                </div>
 
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -193,6 +197,7 @@ export default function CandidateApplicationsPage() {
                     </div>
                 </GlassCard>
             )}
-        </div>
+            </div>
+        </DashboardLayout>
     )
 }

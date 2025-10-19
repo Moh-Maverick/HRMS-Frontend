@@ -19,7 +19,9 @@ import {
     ChevronLeft,
     BarChart3,
     Cpu,
-    UserCheck
+    UserCheck,
+    Video,
+    CheckCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -63,6 +65,8 @@ const roleMenuItems = {
         { icon: User, label: "Profile", path: "/dashboard/candidate/profile" },
         { icon: Briefcase, label: "Applications", path: "/dashboard/candidate/applications" },
         { icon: Calendar, label: "Interviews", path: "/dashboard/candidate/interviews" },
+        { icon: Video, label: "AI Interview", path: "/dashboard/candidate/interview" },
+        { icon: CheckCircle, label: "Results", path: "/dashboard/candidate/result" },
     ],
 }
 
