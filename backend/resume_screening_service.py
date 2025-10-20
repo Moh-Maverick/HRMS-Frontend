@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional, List
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from simplified_resume_parser import SimplifiedResumeParser
+from enhanced_resume_parser import EnhancedResumeParser
 from skill_matcher import SkillMatcher
 from resume_scorer import ResumeScorer
 from gemini_analyzer import GeminiResumeAnalyzer
@@ -40,7 +40,7 @@ class ResumeScreeningService:
     """Service class for resume screening operations"""
     
     def __init__(self):
-        self.parser = SimplifiedResumeParser()
+        self.parser = EnhancedResumeParser()
         self.matcher = SkillMatcher(use_ai=False)
         self.scorer = ResumeScorer()
         self.gemini_analyzer = GeminiResumeAnalyzer()
@@ -102,18 +102,18 @@ class ResumeScreeningService:
                 parsed_data = self.parser.parse_resume(temp_file_path)
                 print(f"✓ Resume parsed successfully for {request.candidate_name}")
                 
-                # Calculate basic scores
-                resume_skills = parsed_data.get('skills', [])
-                required_skills = job_config.get('required_skills', [])
-                print(f"Resume skills: {resume_skills}")
-                print(f"Required skills: {required_skills}")
-                skill_scores = self.matcher.match_skills(resume_skills, required_skills)
-                print(f"Skill scores type: {type(skill_scores)}")
-                print(f"Skill scores: {skill_scores}")
+                # Calculate basic scores using the original method
                 overall_score_data = self.scorer.calculate_overall_score(parsed_data, job_config)
-                print(f"Overall score data type: {type(overall_score_data)}")
-                print(f"Overall score data: {overall_score_data}")
                 overall_score = overall_score_data.get('overall_score', 0)
+                
+                # Skill matching using the original method
+                skill_match = self.matcher.match_against_job_description(
+                    parsed_data,
+                    job_config.get('job_description', ''),
+                    job_config.get('required_skills', []),
+                    job_config.get('optional_skills', []),
+                    job_config.get('custom_keywords', [])
+                )
                 
                 result = {
                     'success': True,
@@ -130,7 +130,7 @@ class ResumeScreeningService:
                 # Add AI analysis if enabled
                 if request.enable_ai:
                     try:
-                        ai_analysis = self.gemini_analyzer.analyze_resume_quality(parsed_data, job_config)
+                        ai_analysis = self.gemini_analyzer.analyze_resume(parsed_data, job_config)
                         if ai_analysis.get('success'):
                             result['analysis'] = ai_analysis.get('analysis', result['analysis'])
                         print(f"✓ AI analysis completed for {request.candidate_name}")

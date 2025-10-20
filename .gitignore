@@ -16,7 +16,7 @@
 # next.js
 /.next/
 /out/
-
+/backend/ser
 # production
 /build
 
@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Firebase credentials and sensitive files
+backend/service-account.json
+service-account.json
+**/service-account.json
+
+# Python cache
+./backend/__pycache__/resume_screening_service.cpython-313.pyc
+**/__pycache__/
+*.pyc
+*.pyo
