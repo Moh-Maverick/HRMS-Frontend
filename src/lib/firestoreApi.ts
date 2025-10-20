@@ -211,18 +211,100 @@ export async function fsGetTeamMembers() {
 
 // CANDIDATE SPECIFIC FUNCTIONS
 export async function fsGetAvailableJobs() {
-    const snap = await getDocs(query(collection(db, 'jobs'), where('status', '==', 'Open')))
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+    try {
+        // First try to get jobs from the 'jobs' collection
+        const jobsSnap = await getDocs(query(collection(db, 'jobs'), where('status', '==', 'Open')))
+        const jobs = jobsSnap.docs.map((d) => {
+            const data = d.data() as any
+            return {
+                id: d.id,
+                title: data.title || 'Job Position',
+                company: data.company || 'Our Company',
+                department: data.department || 'General',
+                location: data.location || 'Remote',
+                type: data.type || data.employment_type || 'Full-time',
+                salary: data.salary || '₹8-15 LPA',
+                experience: data.experience || 'Not specified',
+                description: data.description || (data.jdText ? data.jdText.substring(0, 200) + '...' : 'Job description not available'),
+                jdText: data.jdText,
+                status: data.status || 'Open',
+                openings: data.openings || 1,
+                postedDate: data.postedDate || 'Recently',
+                applicants: data.applicants || Math.floor(Math.random() * 50) + 10,
+                requirements: data.requirements || data.skills || []
+            }
+        })
+        
+        // If we have jobs with JD data, return them
+        if (jobs.length > 0) {
+            console.log(`Found ${jobs.length} jobs from 'jobs' collection`)
+            return jobs
+        }
+        
+        // If no jobs found, try to get from 'job_descriptions' collection as fallback
+        console.log('No jobs found in "jobs" collection, trying "job_descriptions" collection')
+        const jdSnap = await getDocs(collection(db, 'job_descriptions'))
+        const jobDescriptions = jdSnap.docs.map((d) => {
+            const data = d.data() as any
+            return {
+                id: d.id,
+                title: data.role || data.title || 'Job Position',
+                company: 'Our Company', // Default company name
+                department: data.department || 'General',
+                location: data.location || 'Remote',
+                type: data.employment_type || 'Full-time',
+                salary: '₹8-15 LPA', // Default salary range
+                experience: data.experience || 'Not specified',
+                description: data.jd_text ? data.jd_text.substring(0, 200) + '...' : 'Job description not available',
+                jdText: data.jd_text,
+                status: 'Open',
+                openings: 1,
+                postedDate: 'Recently',
+                applicants: Math.floor(Math.random() * 50) + 10, // Random applicant count
+                requirements: data.skills || []
+            }
+        })
+        
+        console.log(`Found ${jobDescriptions.length} job descriptions from 'job_descriptions' collection`)
+        return jobDescriptions
+        
+    } catch (error) {
+        console.error('Error fetching available jobs:', error)
+        return []
+    }
 }
 
 export async function fsApplyForJob(jobId: string, applicationData: any) {
     const uid = auth.currentUser?.uid
     if (!uid) return { success: false }
 
+    // Convert file to base64 if present
+    let resumeBase64 = null
+    if (applicationData.resume && applicationData.resume instanceof File) {
+        try {
+            resumeBase64 = await convertFileToBase64(applicationData.resume)
+        } catch (error) {
+            console.error('Error converting file to base64:', error)
+            return { success: false, error: 'Failed to process resume file' }
+        }
+    }
+
     const application = {
         uid,
         jobId,
-        ...applicationData,
+        candidateName: applicationData.candidateName,
+        email: applicationData.email,
+        phone: applicationData.phone,
+        currentLocation: applicationData.currentLocation,
+        education: applicationData.education,
+        college: applicationData.college,
+        marks: applicationData.marks,
+        experience: applicationData.experience,
+        skills: applicationData.skills,
+        coverLetter: applicationData.coverLetter,
+        resume: resumeBase64,
+        resumeFileName: applicationData.resume?.name || null,
+        resumeFileType: applicationData.resume?.type || null,
         status: 'pending',
         appliedAt: Date.now()
     }
@@ -231,12 +313,137 @@ export async function fsApplyForJob(jobId: string, applicationData: any) {
     return { id: ref.id, ...application }
 }
 
+// Helper function to convert file to base64
+function convertFileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+            const result = reader.result as string
+            // Remove the data URL prefix to get just the base64 string
+            const base64 = result.split(',')[1]
+            resolve(base64)
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+    })
+}
+
 export async function fsGetCandidateApplications() {
     const uid = auth.currentUser?.uid
     if (!uid) return []
 
     const snap = await getDocs(query(collection(db, 'applications'), where('uid', '==', uid)))
     return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+}
+
+// HR FUNCTIONS
+export async function fsGetAllApplications() {
+    try {
+        const snap = await getDocs(collection(db, 'applications'))
+        const applications = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+        
+        // Get job details for each application
+        const applicationsWithJobDetails = await Promise.all(
+            applications.map(async (app) => {
+                try {
+                    // Try to get job details from jobs collection first
+                    const jobSnap = await getDocs(query(collection(db, 'jobs'), where('__name__', '==', app.jobId)))
+                    if (!jobSnap.empty) {
+                        const jobData = jobSnap.docs[0].data()
+                        return {
+                            ...app,
+                            jobTitle: jobData.title || jobData.role || 'Unknown Position',
+                            jobCompany: jobData.company || 'Unknown Company',
+                            jobLocation: jobData.location || 'Unknown Location',
+                            jobDepartment: jobData.department || 'Unknown Department'
+                        }
+                    }
+                    
+                    // Fallback to job_descriptions collection
+                    const jdSnap = await getDocs(query(collection(db, 'job_descriptions'), where('__name__', '==', app.jobId)))
+                    if (!jdSnap.empty) {
+                        const jdData = jdSnap.docs[0].data()
+                        return {
+                            ...app,
+                            jobTitle: jdData.role || jdData.title || 'Unknown Position',
+                            jobCompany: 'Our Company', // Default since job_descriptions don't have company
+                            jobLocation: jdData.location || 'Unknown Location',
+                            jobDepartment: jdData.department || 'Unknown Department'
+                        }
+                    }
+                    
+                    return {
+                        ...app,
+                        jobTitle: 'Unknown Position',
+                        jobCompany: 'Unknown Company',
+                        jobLocation: 'Unknown Location',
+                        jobDepartment: 'Unknown Department'
+                    }
+                } catch (error) {
+                    console.error('Error fetching job details for application:', app.id, error)
+                    return {
+                        ...app,
+                        jobTitle: 'Unknown Position',
+                        jobCompany: 'Unknown Company',
+                        jobLocation: 'Unknown Location',
+                        jobDepartment: 'Unknown Department'
+                    }
+                }
+            })
+        )
+        
+        return applicationsWithJobDetails
+    } catch (error) {
+        console.error('Error fetching applications:', error)
+        return []
+    }
+}
+
+export async function fsUpdateApplicationStatus(applicationId: string, status: string, notes?: string) {
+    try {
+        const applicationRef = doc(db, 'applications', applicationId)
+        await updateDoc(applicationRef, {
+            status,
+            reviewedAt: Date.now(),
+            ...(notes && { reviewNotes: notes })
+        })
+        return { success: true }
+    } catch (error) {
+        console.error('Error updating application status:', error)
+        return { success: false, error: 'Failed to update application status' }
+    }
+}
+
+// Resume Screening API Functions
+export async function screenResume(resumeBase64: string, resumeFileName: string, jobId: string, candidateName: string, enableAI: boolean = true) {
+    try {
+        const response = await fetch('http://localhost:8000/resume/screen', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                resume_base64: resumeBase64,
+                resume_filename: resumeFileName,
+                job_id: jobId,
+                candidate_name: candidateName,
+                enable_ai: enableAI
+            })
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const result = await response.json()
+        return result
+    } catch (error) {
+        console.error('Error screening resume:', error)
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred'
+        }
+    }
 }
 
 export async function fsGetCandidateInterviews() {

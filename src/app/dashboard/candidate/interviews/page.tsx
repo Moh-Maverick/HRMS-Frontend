@@ -1,5 +1,5 @@
 "use client"
-import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { GlassCard } from '@/components/dashboard/GlassCard'
 import { Button } from '@/components/ui/button'
 import { Calendar, Clock, Video, MapPin, Users, CheckCircle } from 'lucide-react'

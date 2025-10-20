@@ -1,0 +1,104 @@
+{
+  "leave_policy": {
+    "description": "Annual leave and time-off policy",
+    "annual_leave": "24 days per year",
+    "sick_leave": "12 days per year",
+    "casual_leave": "8 days per year",
+    "parental_leave": "16 weeks for primary caregiver, 4 weeks for secondary caregiver",
+    "notice_period": "Apply at least 7 days in advance for planned leaves",
+    "approval": "Requires manager approval through HR portal"
+  },
+  "work_from_home": {
+    "description": "Remote work and flexible working policy",
+    "eligibility": "All full-time employees after probation period",
+    "frequency": "Up to 3 days per week",
+    "requirements": [
+      "Stable internet connection",
+      "Dedicated workspace",
+      "Available during core hours (10 AM - 4 PM)",
+      "Prior manager approval required"
+    ],
+    "equipment": "Company provides laptop and necessary equipment"
+  },
+  "dress_code": {
+    "description": "Office attire guidelines",
+    "business_casual": "Standard dress code for regular office days",
+    "casual_friday": "More relaxed attire allowed on Fridays",
+    "client_meetings": "Business formal required for client interactions",
+    "remote_work": "No specific requirements for work-from-home days"
+  },
+  "performance_review": {
+    "description": "Employee performance evaluation process",
+    "frequency": "Bi-annual reviews (June and December)",
+    "components": [
+      "Self-assessment",
+      "Manager evaluation",
+      "Peer feedback",
+      "Goal setting"
+    ],
+    "rating_scale": "5-point scale (1=Needs Improvement to 5=Exceptional)",
+    "impact": "Reviews influence promotions, bonuses, and development plans"
+  },
+  "onboarding": {
+    "description": "New employee onboarding process",
+    "duration": "First 90 days",
+    "day_one": [
+      "HR orientation and paperwork",
+      "IT setup and equipment",
+      "Office tour",
+      "Team introductions"
+    ],
+    "first_week": [
+      "Role-specific training",
+      "Company culture overview",
+      "Buddy program assignment",
+      "Initial goal setting"
+    ],
+    "first_month": [
+      "Department training",
+      "Cross-functional meetings",
+      "First check-in with manager",
+      "Access to learning resources"
+    ],
+    "resources": "Onboarding portal: hr.company.com/onboarding"
+  },
+  "benefits": {
+    "description": "Employee benefits package",
+    "health_insurance": {
+      "coverage": "Medical, dental, and vision",
+      "family_coverage": "Available for spouse and dependents",
+      "premium": "80% employer contribution"
+    },
+    "retirement": {
+      "plan": "401(k) with company match",
+      "match": "Up to 6% of salary",
+      "vesting": "Immediate vesting"
+    },
+    "wellness": {
+      "gym_membership": "Subsidized gym membership",
+      "mental_health": "EAP counseling services",
+      "wellness_program": "Monthly wellness activities"
+    },
+    "learning": {
+      "budget": "$1,500 annual learning budget",
+      "courses": "Access to online learning platforms",
+      "conferences": "Support for relevant conferences"
+    }
+  },
+  "code_of_conduct": {
+    "description": "Professional conduct guidelines",
+    "respect": "Treat all colleagues with respect and dignity",
+    "diversity": "Embrace diversity and inclusion",
+    "confidentiality": "Protect company and client information",
+    "conflicts": "Disclose potential conflicts of interest",
+    "reporting": "Report violations to HR or ethics hotline"
+  },
+  "attendance": {
+    "description": "Work hours and attendance policy",
+    "core_hours": "10:00 AM - 4:00 PM (required presence)",
+    "flexible_hours": "Flexible start time between 8:00 AM - 10:00 AM",
+    "lunch_break": "1 hour unpaid lunch break",
+    "tracking": "Clock in/out through HR system",
+    "tardiness": "More than 3 late arrivals per month requires discussion with manager"
+  }
+}

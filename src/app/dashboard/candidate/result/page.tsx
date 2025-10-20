@@ -1,5 +1,5 @@
 "use client"
-import { DashboardLayout } from "@/components/layout/dashboard-layout"
+import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { GlassCard } from '@/components/ui/glass-card'
 import { StatsCard } from '@/components/ui/stats-card'
 import { CheckCircle, XCircle, Clock, Star, MessageSquare, Award } from 'lucide-react'

@@ -70,7 +70,7 @@ export default function EmployeeDashboard() {
     }
 
     return (
-        <div className="space-y-6 max-w-7xl">
+        <div className="space-y-6 w-full">
             <div>
                 <h2 className="text-3xl font-bold text-foreground mb-2">Employee Dashboard</h2>
                 <p className="text-muted-foreground">Track your attendance, payroll, and leave balance</p>
@@ -243,6 +243,11 @@ export default function EmployeeDashboard() {
                     </Button>
                 </div>
             </GlassCard>
+
+            {/* Floating Chat Widget */}
+            {/* Rendered globally for employee dashboard */}
+            {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+
         </div>
     )
 }

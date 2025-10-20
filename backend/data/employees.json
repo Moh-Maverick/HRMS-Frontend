@@ -1,0 +1,182 @@
+[
+  {
+    "user_id": "EMP001",
+    "name": "Sarah Johnson",
+    "email": "sarah.johnson@company.com",
+    "department": "Engineering",
+    "position": "Senior Software Engineer",
+    "hire_date": "2022-03-15",
+    "manager": "John Smith",
+    "leave_balance": {
+      "annual_leave": 18,
+      "sick_leave": 10,
+      "casual_leave": 6
+    },
+    "salary": {
+      "base": 95000,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Health Insurance",
+      "401(k) Match",
+      "Gym Membership",
+      "Learning Budget"
+    ],
+    "attendance": {
+      "current_month": {
+        "days_present": 20,
+        "days_absent": 1,
+        "late_arrivals": 2
+      }
+    },
+    "performance": {
+      "last_review_date": "2024-12-15",
+      "rating": 4.5,
+      "next_review_date": "2025-06-15"
+    }
+  },
+  {
+    "user_id": "EMP002",
+    "name": "Michael Chen",
+    "email": "michael.chen@company.com",
+    "department": "Marketing",
+    "position": "Marketing Manager",
+    "hire_date": "2021-07-22",
+    "manager": "Lisa Anderson",
+    "leave_balance": {
+      "annual_leave": 12,
+      "sick_leave": 11,
+      "casual_leave": 5
+    },
+    "salary": {
+      "base": 85000,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Health Insurance",
+      "401(k) Match",
+      "Wellness Program"
+    ],
+    "attendance": {
+      "current_month": {
+        "days_present": 21,
+        "days_absent": 0,
+        "late_arrivals": 0
+      }
+    },
+    "performance": {
+      "last_review_date": "2024-12-15",
+      "rating": 4.2,
+      "next_review_date": "2025-06-15"
+    }
+  },
+  {
+    "user_id": "EMP003",
+    "name": "Emily Rodriguez",
+    "email": "emily.rodriguez@company.com",
+    "department": "Human Resources",
+    "position": "HR Business Partner",
+    "hire_date": "2020-01-10",
+    "manager": "David Williams",
+    "leave_balance": {
+      "annual_leave": 20,
+      "sick_leave": 12,
+      "casual_leave": 7
+    },
+    "salary": {
+      "base": 78000,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Health Insurance",
+      "401(k) Match",
+      "Gym Membership",
+      "Learning Budget"
+    ],
+    "attendance": {
+      "current_month": {
+        "days_present": 22,
+        "days_absent": 0,
+        "late_arrivals": 1
+      }
+    },
+    "performance": {
+      "last_review_date": "2024-12-15",
+      "rating": 4.8,
+      "next_review_date": "2025-06-15"
+    }
+  },
+  {
+    "user_id": "EMP004",
+    "name": "Alex Kumar",
+    "email": "alex.kumar@company.com",
+    "department": "Engineering",
+    "position": "Junior Developer",
+    "hire_date": "2024-09-01",
+    "manager": "John Smith",
+    "leave_balance": {
+      "annual_leave": 24,
+      "sick_leave": 12,
+      "casual_leave": 8
+    },
+    "salary": {
+      "base": 65000,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Health Insurance",
+      "401(k) Match",
+      "Learning Budget"
+    ],
+    "attendance": {
+      "current_month": {
+        "days_present": 21,
+        "days_absent": 0,
+        "late_arrivals": 3
+      }
+    },
+    "performance": {
+      "last_review_date": null,
+      "rating": null,
+      "next_review_date": "2025-03-01",
+      "status": "In probation period"
+    }
+  },
+  {
+    "user_id": "EMP005",
+    "name": "Jessica Taylor",
+    "email": "jessica.taylor@company.com",
+    "department": "Sales",
+    "position": "Sales Director",
+    "hire_date": "2019-05-20",
+    "manager": "CEO",
+    "leave_balance": {
+      "annual_leave": 15,
+      "sick_leave": 8,
+      "casual_leave": 4
+    },
+    "salary": {
+      "base": 110000,
+      "currency": "USD"
+    },
+    "benefits": [
+      "Health Insurance",
+      "401(k) Match",
+      "Gym Membership",
+      "Learning Budget",
+      "Company Car"
+    ],
+    "attendance": {
+      "current_month": {
+        "days_present": 19,
+        "days_absent": 2,
+        "late_arrivals": 1
+      }
+    },
+    "performance": {
+      "last_review_date": "2024-12-15",
+      "rating": 4.7,
+      "next_review_date": "2025-06-15"
+    }
+  }
+]
