@@ -31,11 +31,20 @@ class GeminiResumeAnalyzer:
             api_key: Gemini API key (optional, defaults to environment variable)
         """
         self.api_key = api_key or os.getenv('GEMINI_API_KEY')
+        print(f"🔍 Gemini API Key check: {'***' + self.api_key[-4:] if self.api_key else 'NOT_FOUND'}")
+        
         if not self.api_key:
             raise ValueError("Gemini API key not found. Set GEMINI_API_KEY environment variable or pass api_key parameter.")
         
-        # Initialize client with new API format
-        self.client = genai.Client()
+        # Initialize client with API key (google-genai 0.3.0 format)
+        try:
+            # Set the API key in environment for the client
+            os.environ['GOOGLE_API_KEY'] = self.api_key
+            self.client = genai.Client()
+            print("✓ Gemini client initialized successfully")
+        except Exception as e:
+            print(f"⚠ Gemini client initialization failed: {e}")
+            raise ValueError(f"Failed to initialize Gemini client: {e}")
         
         # Model configuration
         self.model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
