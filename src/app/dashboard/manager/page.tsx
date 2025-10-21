@@ -7,28 +7,20 @@ import { Button } from "@/components/ui/button"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { fsGetPendingLeaves, fsDecideLeave } from '@/lib/firestoreApi'
+import { fsGetPendingLeaves, fsDecideLeave, fsGetTeamMembers } from '@/lib/firestoreApi'
 
 const performanceData = [
-  { name: 'John D.', score: 92 },
-  { name: 'Sarah M.', score: 88 },
-  { name: 'Mike R.', score: 85 },
-  { name: 'Emily S.', score: 90 },
-  { name: 'David L.', score: 87 },
-]
-
-const teamMembers = [
-  { name: 'John Doe', role: 'Senior Developer', status: 'online' },
-  { name: 'Sarah Miller', role: 'UI Designer', status: 'online' },
-  { name: 'Mike Roberts', role: 'Backend Dev', status: 'offline' },
-  { name: 'Emily Stone', role: 'QA Engineer', status: 'online' },
-  { name: 'David Lee', role: 'DevOps', status: 'online' },
-  { name: 'Anna White', role: 'Frontend Dev', status: 'online' },
+  { name: 'Rajesh K.', score: 92 },
+  { name: 'Priya S.', score: 88 },
+  { name: 'Amit R.', score: 85 },
+  { name: 'Sneha M.', score: 90 },
+  { name: 'Arjun L.', score: 87 },
 ]
 
 export default function ManagerDashboard() {
   const router = useRouter()
   const [leaves, setLeaves] = useState<any[]>([])
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   const handleSubmitReview = () => {
@@ -47,13 +39,57 @@ export default function ManagerDashboard() {
     router.push('/dashboard/manager/team')
   }
 
+  // Dummy leave requests for when Firebase is empty
+  const dummyLeaves = [
+    { id: '1', employee: 'Rajesh Kumar', type: 'Vacation', days: 3, startDate: '2024-12-25', endDate: '2024-12-27', reason: 'Family vacation' },
+    { id: '2', employee: 'Priya Sharma', type: 'Sick Leave', days: 1, startDate: '2024-12-22', endDate: '2024-12-22', reason: 'Medical appointment' },
+    { id: '3', employee: 'Amit Reddy', type: 'Personal', days: 2, startDate: '2024-12-30', endDate: '2024-12-31', reason: 'Personal matters' }
+  ]
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const leavesData = await fsGetPendingLeaves()
-        setLeaves(leavesData)
+        const [leavesData, teamData] = await Promise.all([
+          fsGetPendingLeaves(),
+          fsGetTeamMembers()
+        ])
+        
+        // Use dummy data if no leaves found
+        if (leavesData.length === 0) {
+          setLeaves(dummyLeaves)
+        } else {
+          setLeaves(leavesData)
+        }
+        
+        // Use dummy team data if no team members found
+        if (teamData.length === 0) {
+          setTeamMembers([
+            { name: 'Rajesh Kumar', role: 'Senior Developer', status: 'online' },
+            { name: 'Priya Sharma', role: 'UI Designer', status: 'online' },
+            { name: 'Amit Reddy', role: 'Backend Dev', status: 'offline' },
+            { name: 'Sneha Mehta', role: 'QA Engineer', status: 'online' },
+            { name: 'Arjun Patel', role: 'DevOps', status: 'online' },
+            { name: 'Kavya Singh', role: 'Frontend Dev', status: 'online' },
+          ])
+        } else {
+          setTeamMembers(teamData.map(member => ({
+            name: member.name || 'Unknown',
+            role: member.department || 'Employee',
+            status: 'online'
+          })))
+        }
       } catch (error) {
         console.error('Error fetching data:', error)
+        // Use dummy data on error
+        setLeaves(dummyLeaves)
+        setTeamMembers([
+          { name: 'Rajesh Kumar', role: 'Senior Developer', status: 'online' },
+          { name: 'Priya Sharma', role: 'UI Designer', status: 'online' },
+          { name: 'Amit Reddy', role: 'Backend Dev', status: 'offline' },
+          { name: 'Sneha Mehta', role: 'QA Engineer', status: 'online' },
+          { name: 'Arjun Patel', role: 'DevOps', status: 'online' },
+          { name: 'Kavya Singh', role: 'Frontend Dev', status: 'online' },
+        ])
       } finally {
         setLoading(false)
       }
@@ -79,14 +115,14 @@ export default function ManagerDashboard() {
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-4 w-full">
       <div>
-        <h2 className="text-3xl font-bold text-white mb-2">Manager Dashboard</h2>
-        <p className="text-gray-300">Monitor your team's performance and activities</p>
+        <h2 className="text-2xl font-bold text-white mb-1">Manager Dashboard</h2>
+        <p className="text-gray-300 text-sm">Monitor your team's performance and activities</p>
       </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
             icon={Users}
             title="Team Members"
@@ -120,14 +156,14 @@ export default function ManagerDashboard() {
         </div>
 
         {/* Team Performance & Leave Requests */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           <GlassCard delay={0.4} className="xl:col-span-2">
-            <h3 className="text-xl font-semibold text-white mb-4">Team Performance</h3>
-            <ResponsiveContainer width="100%" height={300}>
+            <h3 className="text-lg font-semibold text-white mb-3">Team Performance</h3>
+            <ResponsiveContainer width="100%" height={250} style={{ background: 'transparent' }}>
               <BarChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-                <XAxis dataKey="name" stroke="rgba(0,0,0,0.5)" />
-                <YAxis stroke="rgba(0,0,0,0.5)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="name" stroke="rgba(255,255,255,0.7)" />
+                <YAxis stroke="rgba(255,255,255,0.7)" />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'rgba(0, 0, 0, 0.95)',
@@ -151,25 +187,25 @@ export default function ManagerDashboard() {
           </GlassCard>
 
           <GlassCard delay={0.5}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-white">Pending Leave Requests</h3>
-              <Button variant="outline" size="sm" className="border-gray-300">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-white">Pending Leave Requests</h3>
+              <Button variant="outline" size="sm" className="border-gray-300" onClick={() => router.push('/dashboard/manager/leave-requests')}>
                 View All
               </Button>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {leaves.slice(0, 3).map((request, index) => (
-                <div key={index} className="p-4 rounded-xl bg-gray-800/30 border border-gray-700">
-                  <div className="flex items-start justify-between mb-3">
+                <div key={index} className="p-3 rounded-xl bg-blue-600/20 border border-blue-500/30">
+                  <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="font-semibold text-white">{request.employee || 'Unknown'}</p>
-                      <p className="text-sm text-gray-300">{request.type} - {request.days} days</p>
+                      <p className="font-semibold text-white text-sm">{request.employee || 'Unknown'}</p>
+                      <p className="text-xs text-gray-300">{request.type} - {request.days} days</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      className="flex-1"
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-1"
                       onClick={() => handleLeaveDecision(request.id, 'approved')}
                     >
                       Approve
@@ -177,7 +213,7 @@ export default function ManagerDashboard() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="flex-1 border-gray-300"
+                      className="flex-1 border-red-500 text-red-300 hover:bg-red-500 hover:text-white text-xs py-1"
                       onClick={() => handleLeaveDecision(request.id, 'rejected')}
                     >
                       Reject
@@ -190,20 +226,20 @@ export default function ManagerDashboard() {
         </div>
 
         {/* Team Members & Recent Activity */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           <GlassCard delay={0.6} className="xl:col-span-2">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-white">Team Members</h3>
-              <Button variant="outline" className="border-gray-300">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-white">Team Members</h3>
+              <Button variant="outline" className="border-gray-300" onClick={() => router.push('/dashboard/manager/team')}>
                 View Details
               </Button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {teamMembers.map((member, index) => (
-                <div key={index} className="p-4 rounded-xl bg-gray-800/30 border border-gray-700 hover:border-orange-300 transition-all cursor-pointer">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
-                      <span className="text-orange-600 font-semibold">{member.name[0]}</span>
+                <div key={index} className="p-3 rounded-xl bg-blue-600/20 border border-blue-500/30 hover:border-blue-400/50 transition-all cursor-pointer">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-8 w-8 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
+                      <span className="text-orange-300 font-semibold text-sm">{member.name[0]}</span>
                     </div>
                     <div className={`h-2 w-2 rounded-full ${member.status === 'online' ? 'bg-green-400' : 'bg-gray-400'}`} />
                   </div>
@@ -215,23 +251,23 @@ export default function ManagerDashboard() {
           </GlassCard>
 
           <GlassCard delay={0.65}>
-            <h3 className="text-xl font-semibold text-white mb-4">Recent Activity</h3>
-            <div className="space-y-3">
+            <h3 className="text-lg font-semibold text-white mb-3">Recent Activity</h3>
+            <div className="space-y-2">
               {[
-                { action: 'John Doe submitted a leave request', time: '2 hours ago', type: 'leave' },
-                { action: 'Sarah Miller completed performance review', time: '4 hours ago', type: 'review' },
-                { action: 'Mike Roberts updated project status', time: '6 hours ago', type: 'project' },
-                { action: 'Emily Stone attended team meeting', time: '1 day ago', type: 'meeting' },
-                { action: 'David Lee submitted timesheet', time: '1 day ago', type: 'timesheet' },
+                { action: 'Rajesh Kumar submitted a leave request', time: '2 hours ago', type: 'leave' },
+                { action: 'Priya Sharma completed performance review', time: '4 hours ago', type: 'review' },
+                { action: 'Amit Reddy updated project status', time: '6 hours ago', type: 'project' },
+                { action: 'Sneha Mehta attended team meeting', time: '1 day ago', type: 'meeting' },
+                { action: 'Arjun Patel submitted timesheet', time: '1 day ago', type: 'timesheet' },
               ].map((activity, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-gray-800/30 border border-gray-700">
+                <div key={index} className="flex items-start gap-2 p-2 rounded-lg bg-blue-600/20 border border-blue-500/30">
                   <div className={`h-2 w-2 rounded-full mt-2 ${activity.type === 'leave' ? 'bg-yellow-500' :
                     activity.type === 'review' ? 'bg-green-500' :
                       activity.type === 'project' ? 'bg-blue-500' :
                         activity.type === 'meeting' ? 'bg-purple-500' : 'bg-gray-500'
                     }`} />
                   <div className="flex-1">
-                    <p className="text-sm text-white">{activity.action}</p>
+                    <p className="text-xs text-white">{activity.action}</p>
                     <p className="text-xs text-gray-400">{activity.time}</p>
                   </div>
                 </div>
@@ -242,23 +278,23 @@ export default function ManagerDashboard() {
 
         {/* Quick Actions */}
         <GlassCard delay={0.7}>
-          <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleSubmitReview}>
-              <Award className="h-5 w-5" />
-              <span className="text-sm">Submit Review</span>
+          <h3 className="text-lg font-semibold text-white mb-3">Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Button variant="outline" className="h-auto py-3 flex-col gap-1 border-orange-500 text-orange-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleSubmitReview}>
+              <Award className="h-4 w-4" />
+              <span className="text-xs">Submit Review</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleViewAttendance}>
-              <UserCheck className="h-5 w-5" />
-              <span className="text-sm">View Attendance</span>
+            <Button variant="outline" className="h-auto py-3 flex-col gap-1 border-orange-500 text-orange-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleViewAttendance}>
+              <UserCheck className="h-4 w-4" />
+              <span className="text-xs">View Attendance</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleLeaveRequests}>
-              <Clock className="h-5 w-5" />
-              <span className="text-sm">Leave Requests</span>
+            <Button variant="outline" className="h-auto py-3 flex-col gap-1 border-orange-500 text-orange-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleLeaveRequests}>
+              <Clock className="h-4 w-4" />
+              <span className="text-xs">Leave Requests</span>
             </Button>
-            <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleTeamReport}>
-              <Users className="h-5 w-5" />
-              <span className="text-sm">Team Report</span>
+            <Button variant="outline" className="h-auto py-3 flex-col gap-1 border-orange-500 text-orange-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleTeamReport}>
+              <Users className="h-4 w-4" />
+              <span className="text-xs">Team Report</span>
             </Button>
           </div>
         </GlassCard>

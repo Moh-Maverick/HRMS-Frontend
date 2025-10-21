@@ -178,7 +178,7 @@ export default function EmployeeDashboard() {
                 <GlassCard delay={0.5}>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-xl font-semibold text-foreground">Recent Leave Requests</h3>
-                        <Button variant="outline" size="sm" className="border-glass-border">
+                        <Button variant="outline" size="sm" className="border-glass-border" onClick={handleApplyLeave}>
                             Apply Leave
                         </Button>
                     </div>

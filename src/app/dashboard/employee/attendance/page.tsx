@@ -182,7 +182,7 @@ export default function EmployeeAttendancePage() {
             <GlassCard delay={0.5}>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-semibold text-foreground">Recent Attendance</h3>
-                    <Button variant="outline" className="border-glass-border">View All</Button>
+                    <Button variant="outline" className="border-glass-border" onClick={() => alert('Viewing all attendance records...')}>View All</Button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">

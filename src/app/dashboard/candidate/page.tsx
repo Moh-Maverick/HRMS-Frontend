@@ -182,7 +182,7 @@ export default function CandidateDashboard() {
                 <GlassCard delay={0.6} className="xl:col-span-2">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-xl font-semibold text-foreground">Profile Completion</h3>
-                        <Button variant="outline" className="border-glass-border">
+                        <Button variant="outline" className="border-glass-border" onClick={handleUpdateProfile}>
                             Edit Profile
                         </Button>
                     </div>

@@ -85,8 +85,8 @@ export default function ManagerLeaveRequestsPage() {
                         <GlassCard key={index} delay={0.3 + index * 0.05}>
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-start gap-4">
-                                    <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                                        <User className="h-6 w-6 text-orange-500" />
+                                    <div className="h-12 w-12 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center flex-shrink-0">
+                                        <User className="h-6 w-6 text-orange-300" />
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="text-lg font-semibold text-white mb-1">{request.employee || 'Team Member'}</h3>
@@ -102,7 +102,7 @@ export default function ManagerLeaveRequestsPage() {
                                             </span>
                                         </div>
                                         {request.reason && (
-                                            <p className="text-sm text-gray-700 mt-2 bg-gray-50 p-2 rounded">
+                                            <p className="text-sm text-gray-300 mt-2 bg-blue-600/20 border border-blue-500/30 p-2 rounded">
                                                 {request.reason}
                                             </p>
                                         )}
@@ -111,7 +111,7 @@ export default function ManagerLeaveRequestsPage() {
                                 <div className="flex gap-2">
                                     <Button
                                         size="sm"
-                                        className="flex-1 bg-green-500 hover:bg-green-600"
+                                        className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
                                         onClick={() => handleLeaveDecision(request.id, 'approved')}
                                     >
                                         <CheckCircle className="h-4 w-4 mr-1" />
@@ -120,7 +120,7 @@ export default function ManagerLeaveRequestsPage() {
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                                        className="flex-1 border-red-500 text-red-300 hover:bg-red-500 hover:text-white"
                                         onClick={() => handleLeaveDecision(request.id, 'rejected')}
                                     >
                                         <XCircle className="h-4 w-4 mr-1" />
@@ -145,11 +145,11 @@ export default function ManagerLeaveRequestsPage() {
                 <h3 className="text-xl font-semibold text-white mb-4">Recent Decisions</h3>
                 <div className="space-y-3">
                     {[
-                        { employee: 'John Doe', type: 'Vacation', days: 5, status: 'approved', date: 'Jan 15, 2025' },
-                        { employee: 'Sarah Miller', type: 'Sick Leave', days: 2, status: 'approved', date: 'Jan 14, 2025' },
-                        { employee: 'Mike Roberts', type: 'Personal', days: 3, status: 'rejected', date: 'Jan 13, 2025' },
+                        { employee: 'Rajesh Kumar', type: 'Vacation', days: 5, status: 'approved', date: 'Jan 15, 2025' },
+                        { employee: 'Priya Sharma', type: 'Sick Leave', days: 2, status: 'approved', date: 'Jan 14, 2025' },
+                        { employee: 'Amit Reddy', type: 'Personal', days: 3, status: 'rejected', date: 'Jan 13, 2025' },
                     ].map((decision, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200">
+                        <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-blue-600/20 border border-blue-500/30">
                             <div className="flex items-center gap-3">
                                 <div className={`h-8 w-8 rounded-full flex items-center justify-center ${decision.status === 'approved' ? 'bg-green-100' : 'bg-red-100'
                                     }`}>
@@ -165,8 +165,8 @@ export default function ManagerLeaveRequestsPage() {
                                 </div>
                             </div>
                             <span className={`text-xs px-2 py-1 rounded-full ${decision.status === 'approved'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-red-100 text-red-800'
+                                    ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                                    : 'bg-red-500/20 text-red-300 border border-red-500/30'
                                 }`}>
                                 {decision.status}
                             </span>

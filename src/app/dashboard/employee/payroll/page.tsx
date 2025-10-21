@@ -8,6 +8,14 @@ export default function EmployeePayrollPage() {
     const [payroll, setPayroll] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
+    const handleDownloadAll = () => {
+        alert('Downloading all payslips...')
+    }
+
+    const handleDownloadPayslip = (payslipId: string) => {
+        alert(`Downloading payslip ${payslipId}...`)
+    }
+
     useEffect(() => {
         const fetchPayroll = async () => {
             try {
@@ -108,7 +116,7 @@ export default function EmployeePayrollPage() {
             <GlassCard delay={0.1}>
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-semibold text-foreground">Payslip History</h3>
-                    <Button variant="outline" className="border-glass-border">
+                    <Button variant="outline" className="border-glass-border" onClick={handleDownloadAll}>
                         <Download className="h-4 w-4 mr-2" />
                         Download All
                     </Button>
@@ -148,7 +156,7 @@ export default function EmployeePayrollPage() {
                                         </span>
                                     </div>
 
-                                    <Button variant="outline" size="sm" className="border-glass-border">
+                                    <Button variant="outline" size="sm" className="border-glass-border" onClick={() => handleDownloadPayslip(payslip.id)}>
                                         <Download className="h-4 w-4 mr-1" />
                                         Download
                                     </Button>

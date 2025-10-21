@@ -55,6 +55,25 @@ export default function HRReportsPage() {
         }
     }
 
+    const handleDownloadChart = (chartName: string) => {
+        // Create a simple download functionality
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (ctx) {
+            ctx.fillStyle = '#1a1a1a'
+            ctx.fillRect(0, 0, 400, 200)
+            ctx.fillStyle = '#ffffff'
+            ctx.font = '16px Arial'
+            ctx.fillText(`${chartName} Chart`, 20, 30)
+            ctx.fillText('Downloaded from HR Reports', 20, 50)
+            
+            const link = document.createElement('a')
+            link.download = `${chartName.toLowerCase().replace(/\s+/g, '_')}_chart.png`
+            link.href = canvas.toDataURL()
+            link.click()
+        }
+    }
+
     return (
         <div className="space-y-6 max-w-7xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -259,7 +278,7 @@ export default function HRReportsPage() {
                                     </div>
                                 </div>
                             </div>
-                            <Button size="sm" variant="outline" className="border-glass-border gap-2 hover:bg-accent hover:text-white hover:border-accent transition-all">
+                            <Button size="sm" variant="outline" className="border-glass-border gap-2 hover:bg-accent hover:text-white hover:border-accent transition-all" onClick={() => handleDownloadChart(report.type)}>
                                 <Download className="h-4 w-4" />
                                 Download
                             </Button>

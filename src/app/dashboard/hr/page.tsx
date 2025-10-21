@@ -160,7 +160,7 @@ export default function HRDashboard() {
                 <GlassCard delay={0.5}>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-xl font-semibold text-foreground">Upcoming Interviews</h3>
-                        <Button variant="outline" size="sm" className="border-glass-border">
+                        <Button variant="outline" size="sm" className="border-glass-border" onClick={() => router.push('/dashboard/hr/interviews')}>
                             View All
                         </Button>
                     </div>

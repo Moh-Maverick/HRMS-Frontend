@@ -102,8 +102,8 @@ export default function CandidateInterviewPage() {
     return (
         <div className="space-y-6 max-w-7xl">
             <div>
-                <h2 className="text-3xl font-bold text-foreground mb-2">AI Interview</h2>
-                <p className="text-muted-foreground">Join your AI-powered interview session</p>
+                <h2 className="text-3xl font-bold text-white mb-2">AI Interview</h2>
+                <p className="text-gray-300">Join your AI-powered interview session</p>
             </div>
 
             {/* Interview Overview */}
@@ -142,16 +142,16 @@ export default function CandidateInterviewPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <GlassCard delay={0.4}>
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 rounded-lg bg-accent/20 border border-accent/30">
-                            <Video className="h-5 w-5 text-accent" />
+                        <div className="p-2 rounded-lg bg-orange-500/20 border border-orange-500/30">
+                            <Video className="h-5 w-5 text-orange-300" />
                         </div>
-                        <h3 className="text-xl font-semibold text-foreground">Interview Details</h3>
+                        <h3 className="text-xl font-semibold text-white">Interview Details</h3>
                     </div>
 
                     <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-accent/10 border border-accent/20">
-                            <h4 className="font-semibold text-accent mb-2">What to Expect</h4>
-                            <ul className="text-sm text-accent/80 space-y-1">
+                        <div className="p-4 rounded-xl bg-blue-600/20 border border-blue-500/30">
+                            <h4 className="font-semibold text-orange-300 mb-2">What to Expect</h4>
+                            <ul className="text-sm text-gray-300 space-y-1">
                                 <li>• AI will ask technical questions based on your role</li>
                                 <li>• Questions will adapt based on your responses</li>
                                 <li>• You'll have time to think and respond</li>
@@ -163,31 +163,31 @@ export default function CandidateInterviewPage() {
 
                 <GlassCard delay={0.5}>
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 rounded-lg bg-accent/20 border border-accent/30">
-                            <Key className="h-5 w-5 text-accent" />
+                        <div className="p-2 rounded-lg bg-orange-500/20 border border-orange-500/30">
+                            <Key className="h-5 w-5 text-orange-300" />
                         </div>
-                        <h3 className="text-xl font-semibold text-foreground">Interview Tokens</h3>
+                        <h3 className="text-xl font-semibold text-white">Interview Tokens</h3>
                     </div>
 
                     <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-card/50 border border-glass-border">
+                        <div className="p-4 rounded-xl bg-blue-600/20 border border-blue-500/30">
                             <div className="flex items-center gap-2 mb-3">
-                                <Key className="h-5 w-5 text-accent" />
-                                <h4 className="font-semibold text-foreground">Session ID</h4>
+                                <Key className="h-5 w-5 text-orange-300" />
+                                <h4 className="font-semibold text-white">Session ID</h4>
                             </div>
-                            <p className="text-sm text-muted-foreground mb-3">
+                            <p className="text-sm text-gray-300 mb-3">
                                 Please check your email for your session ID. You can join the interview from the link provided in your mail or directly from this dashboard.
                             </p>
-                            <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
-                                <p className="text-xs text-accent/80 text-center">
+                            <div className="p-3 rounded-lg bg-orange-500/20 border border-orange-500/30">
+                                <p className="text-xs text-orange-300 text-center">
                                     Session details have been sent to your registered email address
                                 </p>
                             </div>
                         </div>
 
-                        <div className="p-4 rounded-xl bg-accent/10 border border-accent/20">
-                            <h4 className="font-semibold text-accent mb-2">Before You Start</h4>
-                            <ul className="text-sm text-accent/80 space-y-1">
+                        <div className="p-4 rounded-xl bg-blue-600/20 border border-blue-500/30">
+                            <h4 className="font-semibold text-orange-300 mb-2">Before You Start</h4>
+                            <ul className="text-sm text-gray-300 space-y-1">
                                 <li>• Ensure stable internet connection</li>
                                 <li>• Test your microphone</li>
                                 <li>• Find a quiet, well-lit environment</li>
@@ -201,17 +201,17 @@ export default function CandidateInterviewPage() {
             {/* Join Interview */}
             <GlassCard delay={0.6}>
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-lg bg-accent/20 border border-accent/30">
-                        <Play className="h-5 w-5 text-accent" />
+                    <div className="p-2 rounded-lg bg-orange-500/20 border border-orange-500/30">
+                        <Play className="h-5 w-5 text-orange-300" />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground">Ready to Start?</h3>
+                    <h3 className="text-xl font-semibold text-white">Ready to Start?</h3>
                 </div>
 
                 <div className="text-center py-8">
                     <div className="mb-6">
-                        <Video className="h-16 w-16 text-accent mx-auto mb-4" />
-                        <h4 className="text-xl font-semibold text-foreground mb-2">AI Interview Session</h4>
-                        <p className="text-muted-foreground mb-4">
+                        <Video className="h-16 w-16 text-orange-300 mx-auto mb-4" />
+                        <h4 className="text-xl font-semibold text-white mb-2">AI Interview Session</h4>
+                        <p className="text-gray-300 mb-4">
                             Your interview session is ready. Use your session ID from email to join.
                         </p>
                     </div>
@@ -219,7 +219,7 @@ export default function CandidateInterviewPage() {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Button 
                             size="lg" 
-                            className="gap-2 bg-accent hover:bg-accent/90 px-8 py-3"
+                            className="gap-2 bg-orange-500 hover:bg-orange-600 text-white px-8 py-3"
                             onClick={() => window.open('https://ai-interview-bot-seven.vercel.app/sign-in', '_blank')}
                         >
                             <Play className="h-5 w-5" />
@@ -228,7 +228,7 @@ export default function CandidateInterviewPage() {
                         <Button 
                             size="lg" 
                             variant="outline" 
-                            className="border-glass-border hover:bg-accent hover:text-white hover:border-accent px-8 py-3"
+                            className="border-orange-500 text-orange-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 px-8 py-3"
                             onClick={async () => {
                                 await runConnectionTest()
                             }}
@@ -241,19 +241,19 @@ export default function CandidateInterviewPage() {
                     {/* Test Results */}
                     {testResults && (
                         <div className="mt-6 max-w-2xl mx-auto text-left">
-                            <div className="p-4 rounded-lg bg-muted/10 border border-glass-border">
-                                <h4 className="font-semibold mb-2">Connection Test Results</h4>
-                                <ul className="text-sm space-y-1">
-                                    <li>• Online: <strong>{testResults.online ? 'Yes' : 'No'}</strong></li>
-                                    <li>• Latency: <strong>{testResults.latencyMs !== null ? `${testResults.latencyMs} ms` : 'Unavailable'}</strong></li>
-                                    <li>• Camera: <strong>{testResults.camera}</strong></li>
-                                    <li>• Microphone: <strong>{testResults.microphone}</strong></li>
+                            <div className="p-4 rounded-lg bg-blue-600/20 border border-blue-500/30">
+                                <h4 className="font-semibold text-white mb-2">Connection Test Results</h4>
+                                <ul className="text-sm text-gray-300 space-y-1">
+                                    <li>• Online: <strong className="text-orange-300">{testResults.online ? 'Yes' : 'No'}</strong></li>
+                                    <li>• Latency: <strong className="text-orange-300">{testResults.latencyMs !== null ? `${testResults.latencyMs} ms` : 'Unavailable'}</strong></li>
+                                    <li>• Camera: <strong className="text-orange-300">{testResults.camera}</strong></li>
+                                    <li>• Microphone: <strong className="text-orange-300">{testResults.microphone}</strong></li>
                                 </ul>
                             </div>
                         </div>
                     )}
 
-                    <p className="text-sm text-muted-foreground mt-4">
+                    <p className="text-sm text-gray-300 mt-4">
                         Make sure you're ready before joining. The interview will begin immediately.
                     </p>
                 </div>

@@ -456,7 +456,7 @@ export default function CandidateJobsPage() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                    <Button variant="outline" className="border-glass-border">Filter</Button>
+                    <Button variant="outline" className="border-glass-border" onClick={() => alert('Filtering jobs...')}>Filter</Button>
                     </div>
                 </GlassCard>
 

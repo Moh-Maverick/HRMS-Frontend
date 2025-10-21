@@ -9,13 +9,91 @@ export default function ManagerTeamPage() {
     const [teamMembers, setTeamMembers] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
+    // Dummy data for when Firebase is empty
+    const dummyTeamMembers = [
+        { 
+            id: '1', 
+            name: 'John Doe', 
+            email: 'john.doe@company.com', 
+            role: 'Senior Developer', 
+            department: 'Engineering',
+            phone: '+1 (555) 123-4567',
+            joinDate: '2023-01-15',
+            status: 'active',
+            performance: 92
+        },
+        { 
+            id: '2', 
+            name: 'Sarah Miller', 
+            email: 'sarah.miller@company.com', 
+            role: 'UI Designer', 
+            department: 'Design',
+            phone: '+1 (555) 234-5678',
+            joinDate: '2023-03-20',
+            status: 'active',
+            performance: 88
+        },
+        { 
+            id: '3', 
+            name: 'Mike Roberts', 
+            email: 'mike.roberts@company.com', 
+            role: 'Backend Developer', 
+            department: 'Engineering',
+            phone: '+1 (555) 345-6789',
+            joinDate: '2023-02-10',
+            status: 'active',
+            performance: 85
+        },
+        { 
+            id: '4', 
+            name: 'Emily Stone', 
+            email: 'emily.stone@company.com', 
+            role: 'QA Engineer', 
+            department: 'Quality',
+            phone: '+1 (555) 456-7890',
+            joinDate: '2023-04-05',
+            status: 'active',
+            performance: 90
+        },
+        { 
+            id: '5', 
+            name: 'David Lee', 
+            email: 'david.lee@company.com', 
+            role: 'DevOps Engineer', 
+            department: 'Engineering',
+            phone: '+1 (555) 567-8901',
+            joinDate: '2023-01-30',
+            status: 'active',
+            performance: 87
+        },
+        { 
+            id: '6', 
+            name: 'Anna White', 
+            email: 'anna.white@company.com', 
+            role: 'Frontend Developer', 
+            department: 'Engineering',
+            phone: '+1 (555) 678-9012',
+            joinDate: '2023-05-15',
+            status: 'active',
+            performance: 89
+        }
+    ]
+
     useEffect(() => {
         const fetchTeamMembers = async () => {
             try {
                 const membersData = await fsGetTeamMembers()
-                setTeamMembers(membersData)
+                
+                // Use dummy data if no members found
+                if (membersData.length === 0) {
+                    setTeamMembers(dummyTeamMembers)
+                } else {
+                    setTeamMembers(membersData)
+                }
             } catch (error) {
                 console.error('Error fetching team members:', error)
+                // Use dummy data on error
+                setTeamMembers(dummyTeamMembers)
             } finally {
                 setLoading(false)
             }
@@ -106,10 +184,10 @@ export default function ManagerTeamPage() {
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <Button size="sm" variant="outline" className="border-gray-300">
+                                    <Button size="sm" variant="outline" className="border-gray-300" onClick={() => window.open(`mailto:${member.email}`, '_blank')}>
                                         <Mail className="h-4 w-4" />
                                     </Button>
-                                    <Button size="sm">View Profile</Button>
+                                    <Button size="sm" onClick={() => alert(`Viewing profile for ${member.name}`)}>View Profile</Button>
                                 </div>
                             </div>
                         </div>

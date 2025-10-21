@@ -14,7 +14,6 @@ import Starfield from '@/components/Starfield'
 type Role = "admin" | "hr" | "manager" | "employee" | "candidate";
 
 const roles = [
-    { id: "employee", name: "Employee", icon: Briefcase, description: "Access to personal dashboard" },
     { id: "candidate", name: "Candidate", icon: FileUser, description: "Apply for positions" },
 ];
 
