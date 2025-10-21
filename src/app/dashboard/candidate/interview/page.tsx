@@ -10,6 +10,8 @@ export default function CandidateInterviewPage() {
     const [tokens, setTokens] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [interviewData, setInterviewData] = useState<any>(null)
+    const [testing, setTesting] = useState(false)
+    const [testResults, setTestResults] = useState<any>(null)
 
     useEffect(() => { 
         setTokens([{ id: 'tk1', value: 'ABC-123', expires: '2025-10-31' }])
@@ -24,6 +26,70 @@ export default function CandidateInterviewPage() {
         })
         setLoading(false)
     }, [])
+
+    // Runs a simple connectivity, latency and media device check
+    const runConnectionTest = async () => {
+        setTesting(true)
+        setTestResults(null)
+
+        const results: any = {
+            online: typeof navigator !== 'undefined' ? navigator.onLine : false,
+            latencyMs: null,
+            camera: 'Unknown',
+            microphone: 'Unknown'
+        }
+
+        // Measure latency by fetching a lightweight URL with a timeout
+        try {
+            const controller = new AbortController()
+            const timeout = setTimeout(() => controller.abort(), 5000)
+            const start = performance.now()
+            // Use a lightweight URL that returns 204 where possible
+            await fetch('https://www.google.com/generate_204', { method: 'GET', signal: controller.signal })
+            const end = performance.now()
+            clearTimeout(timeout)
+            results.latencyMs = Math.round(end - start)
+        } catch (e) {
+            results.latencyMs = null
+        }
+
+        // Check camera and microphone by requesting permissions / getUserMedia
+        try {
+            // Try Permissions API first (may not be available in all browsers)
+            if (navigator.permissions && navigator.permissions.query) {
+                try {
+                    const camPerm = await navigator.permissions.query({ name: 'camera' as any })
+                    results.camera = camPerm.state === 'granted' ? 'Granted' : camPerm.state === 'denied' ? 'Denied' : 'Prompt'
+                } catch (err) {
+                    // ignore
+                }
+                try {
+                    const micPerm = await navigator.permissions.query({ name: 'microphone' as any })
+                    results.microphone = micPerm.state === 'granted' ? 'Granted' : micPerm.state === 'denied' ? 'Denied' : 'Prompt'
+                } catch (err) {
+                    // ignore
+                }
+            }
+
+            // Then try getUserMedia to verify devices (requesting permission if necessary)
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                // If we get a stream, set granted and stop tracks
+                results.camera = 'Granted'
+                results.microphone = 'Granted'
+                stream.getTracks().forEach(t => t.stop())
+            } catch (err: any) {
+                // If permission denied or not available, keep previously set values or mark Denied
+                if (results.camera === 'Unknown') results.camera = 'Denied'
+                if (results.microphone === 'Unknown') results.microphone = 'Denied'
+            }
+        } catch (err) {
+            // ignore
+        }
+
+        setTestResults(results)
+        setTesting(false)
+    }
 
     if (loading) {
         return (
@@ -163,14 +229,29 @@ export default function CandidateInterviewPage() {
                             size="lg" 
                             variant="outline" 
                             className="border-glass-border hover:bg-accent hover:text-white hover:border-accent px-8 py-3"
-                            onClick={() => {
-                                // Handle test connection logic
-                                alert('Testing your connection...')
+                            onClick={async () => {
+                                await runConnectionTest()
                             }}
+                            disabled={testing}
                         >
-                            Test Connection
+                            {testing ? 'Testing...' : 'Test Connection'}
                         </Button>
                     </div>
+
+                    {/* Test Results */}
+                    {testResults && (
+                        <div className="mt-6 max-w-2xl mx-auto text-left">
+                            <div className="p-4 rounded-lg bg-muted/10 border border-glass-border">
+                                <h4 className="font-semibold mb-2">Connection Test Results</h4>
+                                <ul className="text-sm space-y-1">
+                                    <li>• Online: <strong>{testResults.online ? 'Yes' : 'No'}</strong></li>
+                                    <li>• Latency: <strong>{testResults.latencyMs !== null ? `${testResults.latencyMs} ms` : 'Unavailable'}</strong></li>
+                                    <li>• Camera: <strong>{testResults.camera}</strong></li>
+                                    <li>• Microphone: <strong>{testResults.microphone}</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                    )}
 
                     <p className="text-sm text-muted-foreground mt-4">
                         Make sure you're ready before joining. The interview will begin immediately.
