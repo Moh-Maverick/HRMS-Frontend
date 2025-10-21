@@ -13,11 +13,6 @@ const applicationStatus = [
     { company: 'BigTech Co.', position: 'Frontend Developer', status: 'Application Submitted', date: 'Dec 22, 2024' },
 ]
 
-const upcomingInterviews = [
-    { company: 'TechCorp Inc.', position: 'Senior Developer', time: '2:00 PM', date: 'Today', type: 'Technical Interview' },
-    { company: 'StartupXYZ', position: 'Full Stack Engineer', time: '10:00 AM', date: 'Tomorrow', type: 'HR Interview' },
-]
-
 export default function CandidateDashboard() {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
@@ -98,62 +93,31 @@ export default function CandidateDashboard() {
                 />
             </div>
 
-            {/* Application Status & Upcoming Interviews */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <GlassCard delay={0.4} className="xl:col-span-2">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-semibold text-foreground">Application Status</h3>
-                        <Button variant="outline" size="sm" className="border-glass-border">
-                            View All
-                        </Button>
-                    </div>
-                    <div className="space-y-3">
-                        {applicationStatus.map((app, index) => (
-                            <div key={index} className="p-4 rounded-xl bg-muted/30 border border-glass-border">
-                                <div className="flex items-start justify-between mb-2">
-                                    <div>
-                                        <p className="font-semibold text-foreground">{app.company}</p>
-                                        <p className="text-sm text-muted-foreground">{app.position}</p>
-                                    </div>
-                                    <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent">
-                                        {app.status}
-                                    </span>
+            {/* Application Status */}
+            <GlassCard delay={0.4}>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold text-foreground">Application Status</h3>
+                    <Button variant="outline" size="sm" className="border-glass-border">
+                        View All
+                    </Button>
+                </div>
+                <div className="space-y-3">
+                    {applicationStatus.map((app, index) => (
+                        <div key={index} className="p-4 rounded-xl bg-muted/30 border border-glass-border">
+                            <div className="flex items-start justify-between mb-2">
+                                <div>
+                                    <p className="font-semibold text-foreground">{app.company}</p>
+                                    <p className="text-sm text-muted-foreground">{app.position}</p>
                                 </div>
-                                <p className="text-xs text-muted-foreground">{app.date}</p>
+                                <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent">
+                                    {app.status}
+                                </span>
                             </div>
-                        ))}
-                    </div>
-                </GlassCard>
-
-                <GlassCard delay={0.5}>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-semibold text-foreground">Upcoming Interviews</h3>
-                        <Button variant="outline" size="sm" className="border-glass-border">
-                            View All
-                        </Button>
-                    </div>
-                    <div className="space-y-3">
-                        {upcomingInterviews.map((interview, index) => (
-                            <div key={index} className="p-4 rounded-xl bg-muted/30 border border-glass-border">
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <p className="font-semibold text-foreground">{interview.company}</p>
-                                        <p className="text-sm text-muted-foreground">{interview.position}</p>
-                                        <p className="text-xs text-muted-foreground">{interview.type}</p>
-                                    </div>
-                                    <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent">
-                                        {interview.date}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <Clock className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm text-muted-foreground">{interview.time}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </GlassCard>
-            </div>
+                            <p className="text-xs text-muted-foreground">{app.date}</p>
+                        </div>
+                    ))}
+                </div>
+            </GlassCard>
 
             {/* Profile Completion & Job Recommendations */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -208,16 +172,16 @@ export default function CandidateDashboard() {
                     <h3 className="text-xl font-semibold text-foreground mb-4">Job Recommendations</h3>
                     <div className="space-y-3">
                         {[
-                            { title: 'Senior React Developer', company: 'TechCorp Inc.', match: '95%', salary: '₹12-18 LPA' },
-                            { title: 'Full Stack Engineer', company: 'StartupXYZ', match: '88%', salary: '₹10-15 LPA' },
-                            { title: 'Frontend Developer', company: 'Design Studio', match: '82%', salary: '₹8-12 LPA' },
-                            { title: 'UI/UX Developer', company: 'Creative Agency', match: '78%', salary: '₹9-14 LPA' },
+                            { title: 'Senior React Developer', match: '95%', salary: '₹12-18 LPA' },
+                            { title: 'Full Stack Engineer', match: '88%', salary: '₹10-15 LPA' },
+                            { title: 'Frontend Developer', match: '82%', salary: '₹8-12 LPA' },
+                            { title: 'UI/UX Developer', match: '78%', salary: '₹9-14 LPA' },
                         ].map((job, index) => (
                             <div key={index} className="p-3 rounded-lg bg-muted/30 border border-glass-border hover:border-accent transition-all cursor-pointer">
                                 <div className="flex items-start justify-between mb-2">
                                     <div>
                                         <p className="font-semibold text-foreground text-sm">{job.title}</p>
-                                        <p className="text-xs text-muted-foreground">{job.company}</p>
+                                        {/* <p className="text-xs text-muted-foreground">{job.company}</p> */}
                                     </div>
                                     <span className="text-xs px-2 py-1 rounded-full bg-green-400/20 text-green-400">
                                         {job.match}

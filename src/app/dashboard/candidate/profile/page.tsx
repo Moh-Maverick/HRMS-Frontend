@@ -281,10 +281,7 @@ export default function CandidateProfilePage() {
                 id="name"
                 value={formData.fullName || ''}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className={`${isEditing 
-                  ? 'bg-white border-gray-300 focus:border-orange-400 focus:ring-orange-400' 
-                  : 'bg-gray-50 border-gray-200 text-gray-700'
-                }`}
+                className="bg-white border-gray-300"
                 disabled={!isEditing}
               />
             </div>
@@ -298,10 +295,7 @@ export default function CandidateProfilePage() {
                   id="email"
                   value={formData.email || ''}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className={`pl-10 ${isEditing 
-                    ? 'bg-white border-gray-300 focus:border-orange-400 focus:ring-orange-400' 
-                    : 'bg-gray-50 border-gray-200 text-gray-700'
-                  }`}
+                  className="pl-10 bg-white border-gray-300"
                   disabled={!isEditing}
                 />
               </div>
@@ -316,10 +310,7 @@ export default function CandidateProfilePage() {
                   id="phone"
                   value={formData.phone || ''}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className={`pl-10 ${isEditing 
-                    ? 'bg-white border-gray-300 focus:border-orange-400 focus:ring-orange-400' 
-                    : 'bg-gray-50 border-gray-200 text-gray-700'
-                  }`}
+                  className="pl-10 bg-white border-gray-300"
                   disabled={!isEditing}
                 />
               </div>
@@ -334,10 +325,7 @@ export default function CandidateProfilePage() {
                   id="location"
                   value={formData.location || ''}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className={`pl-10 ${isEditing 
-                    ? 'bg-white border-gray-300 focus:border-orange-400 focus:ring-orange-400' 
-                    : 'bg-gray-50 border-gray-200 text-gray-700'
-                  }`}
+                  className="pl-10 bg-white border-gray-300"
                   disabled={!isEditing}
                 />
               </div>
@@ -351,10 +339,7 @@ export default function CandidateProfilePage() {
               id="summary"
               value={formData.summary || ''}
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-              className={`min-h-[100px] ${isEditing 
-                ? 'bg-white border-gray-300 focus:border-orange-400 focus:ring-orange-400' 
-                : 'bg-gray-50 border-gray-200 text-gray-700'
-              }`}
+              className="bg-white border-gray-300 min-h-[100px]"
               placeholder="Tell us about yourself, your skills, and career goals..."
               disabled={!isEditing}
             />
@@ -378,10 +363,7 @@ export default function CandidateProfilePage() {
               id="skills"
               value={formData.skills || ''}
               onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-              className={`min-h-[80px] ${isEditing 
-                ? 'bg-white border-gray-300 focus:border-orange-400 focus:ring-orange-400' 
-                : 'bg-gray-50 border-gray-200 text-gray-700'
-              }`}
+              className="bg-white border-gray-300 min-h-[80px]"
               placeholder="List your technical skills, programming languages, tools, etc."
               disabled={!isEditing}
             />
@@ -393,10 +375,7 @@ export default function CandidateProfilePage() {
               id="experience"
               value={formData.experience || ''}
               onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-              className={`min-h-[120px] ${isEditing 
-                ? 'bg-white border-gray-300 focus:border-orange-400 focus:ring-orange-400' 
-                : 'bg-gray-50 border-gray-200 text-gray-700'
-              }`}
+              className="bg-white border-gray-300 min-h-[120px]"
               placeholder="Describe your work experience, projects, and achievements..."
               disabled={!isEditing}
             />
@@ -419,10 +398,7 @@ export default function CandidateProfilePage() {
             id="education"
             value={formData.education || ''}
             onChange={(e) => setFormData({ ...formData, education: e.target.value })}
-            className={`min-h-[100px] ${isEditing 
-              ? 'bg-white border-gray-300 focus:border-orange-400 focus:ring-orange-400' 
-              : 'bg-gray-50 border-gray-200 text-gray-700'
-            }`}
+            className="bg-white border-gray-300 min-h-[100px]"
             placeholder="List your educational qualifications, degrees, certifications, etc."
             disabled={!isEditing}
           />
