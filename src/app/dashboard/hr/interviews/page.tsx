@@ -45,6 +45,7 @@ const interviews = [
         status: "scheduled"
     },
 ]
+ 
 
 export default function HRInterviewsPage() {
     return (
@@ -54,7 +55,7 @@ export default function HRInterviewsPage() {
                     <h2 className="text-3xl font-bold text-foreground mb-2">Interview Schedule</h2>
                     <p className="text-muted-foreground">Manage and track all interviews</p>
                 </div>
-                <Button className="gap-2">
+                <Button className="gap-2" onClick={() => window.open('https://ai-interview-bot-seven.vercel.app/sign-in', '_blank')}>
                     <Calendar className="h-4 w-4" />
                     Schedule Interview
                 </Button>

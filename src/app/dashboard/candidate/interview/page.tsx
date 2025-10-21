@@ -178,10 +178,7 @@ export default function CandidateInterviewPage() {
                         <Button 
                             size="lg" 
                             className="gap-2 bg-accent hover:bg-accent/90 px-8 py-3"
-                            onClick={() => {
-                                // Handle join interview logic
-                                window.open('/interview/room', '_blank')
-                            }}
+                            onClick={() => window.open('https://ai-interview-bot-seven.vercel.app/sign-in', '_blank')}
                         >
                             <Play className="h-5 w-5" />
                             Join Interview Now
