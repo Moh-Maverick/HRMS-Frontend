@@ -53,12 +53,12 @@ class JDGenerateResponse(BaseModel):
 
 app = FastAPI(title="HRMS Chatbot API", version="1.0.0")
 
-# CORS: In dev allow all; in prod, restrict via env
+# CORS: Allow all origins for now (can be restricted later)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_credentials=False,  # Changed to False to allow wildcard origins
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -71,7 +71,12 @@ resume_screening_service = ResumeScreeningService()
 
 @app.get("/health")
 def health() -> Dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "ok", "cors": "enabled"}
+
+@app.options("/{path:path}")
+async def options_handler(path: str):
+    """Handle preflight OPTIONS requests for CORS"""
+    return {"message": "OK"}
 
 
 @app.post("/chat", response_model=ChatResponse)
