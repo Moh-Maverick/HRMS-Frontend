@@ -37,7 +37,7 @@ export default function ManagerPerformancePage() {
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading performance data...</p>
+                    <p className="text-gray-300">Loading performance data...</p>
                 </div>
             </div>
         )
@@ -46,8 +46,8 @@ export default function ManagerPerformancePage() {
     return (
         <div className="space-y-6 max-w-7xl">
             <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Team Performance</h2>
-                <p className="text-gray-600">Track and review team member performance</p>
+                <h2 className="text-3xl font-bold text-white mb-2">Team Performance</h2>
+                <p className="text-gray-300">Track and review team member performance</p>
             </div>
 
             {/* Stats */}
@@ -58,8 +58,8 @@ export default function ManagerPerformancePage() {
                             <TrendingUp className="h-5 w-5 text-orange-500" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-600">Team Average</p>
-                            <p className="text-2xl font-bold text-gray-900">88%</p>
+                            <p className="text-xs text-gray-300">Team Average</p>
+                            <p className="text-2xl font-bold text-white">88%</p>
                         </div>
                     </div>
                 </GlassCard>
@@ -70,8 +70,8 @@ export default function ManagerPerformancePage() {
                             <Award className="h-5 w-5 text-green-500" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-600">Top Performer</p>
-                            <p className="text-2xl font-bold text-gray-900">92%</p>
+                            <p className="text-xs text-gray-300">Top Performer</p>
+                            <p className="text-2xl font-bold text-white">92%</p>
                         </div>
                     </div>
                 </GlassCard>
@@ -82,8 +82,8 @@ export default function ManagerPerformancePage() {
                             <Target className="h-5 w-5 text-blue-500" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-600">Goals Met</p>
-                            <p className="text-2xl font-bold text-gray-900">9/12</p>
+                            <p className="text-xs text-gray-300">Goals Met</p>
+                            <p className="text-2xl font-bold text-white">9/12</p>
                         </div>
                     </div>
                 </GlassCard>
@@ -94,8 +94,8 @@ export default function ManagerPerformancePage() {
                             <Star className="h-5 w-5 text-orange-500" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-600">Reviews Due</p>
-                            <p className="text-2xl font-bold text-gray-900">3</p>
+                            <p className="text-xs text-gray-300">Reviews Due</p>
+                            <p className="text-2xl font-bold text-white">3</p>
                         </div>
                     </div>
                 </GlassCard>
@@ -104,7 +104,7 @@ export default function ManagerPerformancePage() {
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <GlassCard delay={0.3}>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Individual Performance</h3>
+                    <h3 className="text-xl font-semibold text-white mb-4">Individual Performance</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={performanceData.map(member => ({
                             name: member.name || 'Team Member',
@@ -136,7 +136,7 @@ export default function ManagerPerformancePage() {
                 </GlassCard>
 
                 <GlassCard delay={0.35}>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Team Skills Assessment</h3>
+                    <h3 className="text-xl font-semibold text-white mb-4">Team Skills Assessment</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <RadarChart data={skillsData}>
                             <PolarGrid stroke="rgba(0,0,0,0.2)" />
@@ -151,7 +151,7 @@ export default function ManagerPerformancePage() {
             {/* Performance Reviews */}
             <GlassCard delay={0.4}>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-semibold text-gray-900">Pending Reviews</h3>
+                    <h3 className="text-xl font-semibold text-white">Pending Reviews</h3>
                     <Button>Submit Review</Button>
                 </div>
                 <div className="space-y-3">
@@ -163,8 +163,8 @@ export default function ManagerPerformancePage() {
                         <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200">
                             <div className="flex items-center justify-between mb-3">
                                 <div>
-                                    <h4 className="font-semibold text-gray-900">{review.name}</h4>
-                                    <p className="text-sm text-gray-600">{review.role}</p>
+                                    <h4 className="font-semibold text-white">{review.name}</h4>
+                                    <p className="text-sm text-gray-300">{review.role}</p>
                                 </div>
                                 <span className="text-xs text-gray-500">Due: {review.dueDate}</span>
                             </div>

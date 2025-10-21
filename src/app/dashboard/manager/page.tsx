@@ -1,6 +1,5 @@
 "use client"
 
-import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { StatsCard } from "@/components/ui/stats-card"
 import { GlassCard } from "@/components/ui/glass-card"
 import { Users, UserCheck, TrendingUp, Award, Clock } from "lucide-react"
@@ -73,21 +72,18 @@ export default function ManagerDashboard() {
 
   if (loading) {
     return (
-      <DashboardLayout userRole="manager" userName="Team Manager">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-gray-600">Loading...</div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-gray-600">Loading...</div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout userRole="manager" userName="Team Manager">
-      <div className="space-y-6 w-full">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Manager Dashboard</h2>
-          <p className="text-gray-600">Monitor your team's performance and activities</p>
-        </div>
+    <div className="space-y-6 w-full">
+      <div>
+        <h2 className="text-3xl font-bold text-white mb-2">Manager Dashboard</h2>
+        <p className="text-gray-300">Monitor your team's performance and activities</p>
+      </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -126,7 +122,7 @@ export default function ManagerDashboard() {
         {/* Team Performance & Leave Requests */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <GlassCard delay={0.4} className="xl:col-span-2">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Team Performance</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">Team Performance</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={performanceData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
@@ -156,18 +152,18 @@ export default function ManagerDashboard() {
 
           <GlassCard delay={0.5}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">Pending Leave Requests</h3>
+              <h3 className="text-xl font-semibold text-white">Pending Leave Requests</h3>
               <Button variant="outline" size="sm" className="border-gray-300">
                 View All
               </Button>
             </div>
             <div className="space-y-3">
               {leaves.slice(0, 3).map((request, index) => (
-                <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                <div key={index} className="p-4 rounded-xl bg-gray-800/30 border border-gray-700">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <p className="font-semibold text-gray-900">{request.employee || 'Unknown'}</p>
-                      <p className="text-sm text-gray-600">{request.type} • {request.days} days</p>
+                      <p className="font-semibold text-white">{request.employee || 'Unknown'}</p>
+                      <p className="text-sm text-gray-300">{request.type} - {request.days} days</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -197,29 +193,29 @@ export default function ManagerDashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <GlassCard delay={0.6} className="xl:col-span-2">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">Team Members</h3>
+              <h3 className="text-xl font-semibold text-white">Team Members</h3>
               <Button variant="outline" className="border-gray-300">
                 View Details
               </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {teamMembers.map((member, index) => (
-                <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-orange-300 transition-all cursor-pointer">
+                <div key={index} className="p-4 rounded-xl bg-gray-800/30 border border-gray-700 hover:border-orange-300 transition-all cursor-pointer">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
                       <span className="text-orange-600 font-semibold">{member.name[0]}</span>
                     </div>
                     <div className={`h-2 w-2 rounded-full ${member.status === 'online' ? 'bg-green-400' : 'bg-gray-400'}`} />
                   </div>
-                  <h4 className="font-semibold text-gray-900 text-sm">{member.name}</h4>
-                  <p className="text-xs text-gray-600">{member.role}</p>
+                  <h4 className="font-semibold text-white text-sm">{member.name}</h4>
+                  <p className="text-xs text-gray-300">{member.role}</p>
                 </div>
               ))}
             </div>
           </GlassCard>
 
           <GlassCard delay={0.65}>
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">Recent Activity</h3>
             <div className="space-y-3">
               {[
                 { action: 'John Doe submitted a leave request', time: '2 hours ago', type: 'leave' },
@@ -228,15 +224,15 @@ export default function ManagerDashboard() {
                 { action: 'Emily Stone attended team meeting', time: '1 day ago', type: 'meeting' },
                 { action: 'David Lee submitted timesheet', time: '1 day ago', type: 'timesheet' },
               ].map((activity, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-gray-800/30 border border-gray-700">
                   <div className={`h-2 w-2 rounded-full mt-2 ${activity.type === 'leave' ? 'bg-yellow-500' :
                     activity.type === 'review' ? 'bg-green-500' :
                       activity.type === 'project' ? 'bg-blue-500' :
                         activity.type === 'meeting' ? 'bg-purple-500' : 'bg-gray-500'
                     }`} />
                   <div className="flex-1">
-                    <p className="text-sm text-gray-900">{activity.action}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
+                    <p className="text-sm text-white">{activity.action}</p>
+                    <p className="text-xs text-gray-400">{activity.time}</p>
                   </div>
                 </div>
               ))}
@@ -246,7 +242,7 @@ export default function ManagerDashboard() {
 
         {/* Quick Actions */}
         <GlassCard delay={0.7}>
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Button variant="outline" className="h-auto py-4 flex-col gap-2 border-gray-300 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all" onClick={handleSubmitReview}>
               <Award className="h-5 w-5" />
@@ -266,9 +262,7 @@ export default function ManagerDashboard() {
             </Button>
           </div>
         </GlassCard>
-      </div>
-    </DashboardLayout>
+    </div>
   )
 }
-
 

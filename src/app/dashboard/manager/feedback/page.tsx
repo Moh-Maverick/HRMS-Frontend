@@ -76,7 +76,7 @@ export default function ManagerFeedbackPage() {
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading feedback...</p>
+                    <p className="text-gray-300">Loading feedback...</p>
                 </div>
             </div>
         )
@@ -85,8 +85,8 @@ export default function ManagerFeedbackPage() {
     return (
         <div className="space-y-6 max-w-6xl">
             <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Team Feedback</h2>
-                <p className="text-gray-600">Give feedback to your team members and track performance</p>
+                <h2 className="text-3xl font-bold text-white mb-2">Team Feedback</h2>
+                <p className="text-gray-300">Give feedback to your team members and track performance</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -96,7 +96,7 @@ export default function ManagerFeedbackPage() {
                         <div className="p-2 rounded-lg bg-orange-100 border border-orange-200">
                             <MessageSquare className="h-5 w-5 text-orange-500" />
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-900">Give Feedback</h3>
+                        <h3 className="text-xl font-semibold text-white">Give Feedback</h3>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -113,7 +113,7 @@ export default function ManagerFeedbackPage() {
                                         recipientName: member?.name || ''
                                     })
                                 }}
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900"
+                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-white"
                                 required
                             >
                                 <option value="">Select team member</option>
@@ -131,7 +131,7 @@ export default function ManagerFeedbackPage() {
                                 id="type"
                                 value={formData.type}
                                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900"
+                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-white"
                             >
                                 <option value="manager">Manager Feedback</option>
                                 <option value="peer">Peer Feedback</option>
@@ -182,7 +182,7 @@ export default function ManagerFeedbackPage() {
                         <div className="p-2 rounded-lg bg-blue-100 border border-blue-200">
                             <Award className="h-5 w-5 text-blue-500" />
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-900">Team Performance</h3>
+                        <h3 className="text-xl font-semibold text-white">Team Performance</h3>
                     </div>
 
                     <div className="space-y-4">
@@ -190,8 +190,8 @@ export default function ManagerFeedbackPage() {
                             <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200">
                                 <div className="flex items-center justify-between mb-2">
                                     <div>
-                                        <p className="font-semibold text-gray-900">{member.name}</p>
-                                        <p className="text-sm text-gray-600">{member.role}</p>
+                                        <p className="font-semibold text-white">{member.name}</p>
+                                        <p className="text-sm text-gray-300">{member.role}</p>
                                     </div>
                                     <div className="flex gap-1">
                                         {getRatingStars(member.performance || 4)}
@@ -218,7 +218,7 @@ export default function ManagerFeedbackPage() {
                     <div className="p-2 rounded-lg bg-orange-100 border border-orange-200">
                         <Users className="h-5 w-5 text-orange-500" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Feedback History</h3>
+                    <h3 className="text-xl font-semibold text-white">Feedback History</h3>
                 </div>
 
                 <div className="space-y-4">
@@ -227,8 +227,8 @@ export default function ManagerFeedbackPage() {
                             <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200">
                                 <div className="flex items-start justify-between mb-2">
                                     <div>
-                                        <p className="font-semibold text-gray-900">To: {item.recipientName}</p>
-                                        <p className="text-sm text-gray-600">{item.type}</p>
+                                        <p className="font-semibold text-white">To: {item.recipientName}</p>
+                                        <p className="text-sm text-gray-300">{item.type}</p>
                                     </div>
                                     <div className="flex gap-1">
                                         {getRatingStars(item.rating)}
@@ -241,7 +241,7 @@ export default function ManagerFeedbackPage() {
                     ) : (
                         <div className="text-center py-8">
                             <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600">No feedback given yet</p>
+                            <p className="text-gray-300">No feedback given yet</p>
                         </div>
                     )}
                 </div>

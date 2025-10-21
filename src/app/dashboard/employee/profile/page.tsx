@@ -36,7 +36,13 @@ export default function EmployeeProfilePage() {
         address: '',
         emergencyContact: '',
         emergencyPhone: '',
-        emergencyRelationship: ''
+        emergencyRelationship: '',
+        position: '',
+        department: '',
+        employmentType: '',
+        joinDate: '',
+        manager: '',
+        employeeId: ''
     })
 
     useEffect(() => {
@@ -69,7 +75,13 @@ export default function EmployeeProfilePage() {
                         address: profileData.address,
                         emergencyContact: profileData.emergencyContact,
                         emergencyPhone: profileData.emergencyPhone,
-                        emergencyRelationship: profileData.emergencyRelationship
+                        emergencyRelationship: profileData.emergencyRelationship,
+                        position: profileData.position || '',
+                        department: profileData.department || '',
+                        employmentType: profileData.employmentType || '',
+                        joinDate: profileData.joinDate || '',
+                        manager: profileData.manager || '',
+                        employeeId: profileData.employeeId || ''
                     })
                 }
             } catch (error) {
@@ -120,7 +132,13 @@ export default function EmployeeProfilePage() {
                 address: profile.address,
                 emergencyContact: profile.emergencyContact,
                 emergencyPhone: profile.emergencyPhone,
-                emergencyRelationship: profile.emergencyRelationship
+                emergencyRelationship: profile.emergencyRelationship,
+                position: profile.position || '',
+                department: profile.department || '',
+                employmentType: profile.employmentType || '',
+                joinDate: profile.joinDate || '',
+                manager: profile.manager || '',
+                employeeId: profile.employeeId || ''
             })
         }
         setIsEditing(false)

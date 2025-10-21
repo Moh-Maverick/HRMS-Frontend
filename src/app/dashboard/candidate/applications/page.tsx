@@ -2,7 +2,7 @@
 import { GlassCard } from '@/components/dashboard/GlassCard'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Briefcase, Clock, Calendar, CheckCircle, XCircle, Eye, Brain, Video, ExternalLink } from 'lucide-react'
+import { Briefcase, Clock, Calendar, CheckCircle, XCircle, Eye, Brain, Video, ExternalLink, X, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth'
 import { fsSubscribeToCandidateApplications } from '@/lib/firestoreApi'
@@ -10,6 +10,9 @@ import { fsSubscribeToCandidateApplications } from '@/lib/firestoreApi'
 export default function CandidateApplicationsPage() {
     const { user, loading: authLoading } = useAuth()
     const [applications, setApplications] = useState<any[]>([])
+    const [selectedApplication, setSelectedApplication] = useState<any>(null)
+    const [showApplicationModal, setShowApplicationModal] = useState(false)
+    const [showInterviewModal, setShowInterviewModal] = useState(false)
 
     useEffect(() => {
         console.log('🔐 Applications - Current user:', user)
@@ -36,6 +39,16 @@ export default function CandidateApplicationsPage() {
 
         return () => unsubscribe()
     }, [user, authLoading])
+
+    const handleViewDetails = (application: any) => {
+        setSelectedApplication(application)
+        setShowApplicationModal(true)
+    }
+
+    const handleInterviewInfo = (application: any) => {
+        setSelectedApplication(application)
+        setShowInterviewModal(true)
+    }
 
     const getStatusBadge = (application: any) => {
         // Check final decision first
@@ -101,7 +114,8 @@ export default function CandidateApplicationsPage() {
     }
 
     return (
-        <div className="space-y-6 w-full">
+        <>
+            <div className="space-y-6 w-full">
                 <div>
                     <h2 className="text-3xl font-bold text-white mb-2">My Applications</h2>
                     <p className="text-gray-300">Track all your job applications and their status</p>
@@ -147,7 +161,7 @@ export default function CandidateApplicationsPage() {
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="text-lg font-semibold text-white">{app.jobTitle || 'Job Position'}</h3>
-                                        <p className="text-sm text-gray-300 mb-2">{app.jobCompany || 'Company Name'}</p>
+                                        <p className="text-sm text-gray-300 mb-2">{app.candidateName || 'Candidate Name'}</p>
                                         <div className="flex items-center gap-4 text-xs text-gray-400">
                                             <span className="flex items-center gap-1">
                                                 <Clock className="h-3 w-3" />
@@ -176,13 +190,13 @@ export default function CandidateApplicationsPage() {
                                 <div className="flex flex-col md:items-end gap-3">
                                     {getStatusBadge(app)}
                                     <div className="flex flex-wrap gap-2">
-                                        <Button size="sm" variant="outline" className="border-gray-300">
+                                        <Button size="sm" variant="outline" className="border-gray-300" onClick={() => handleViewDetails(app)}>
                                             <Eye className="h-4 w-4 mr-1" />
                                             <span className="hidden sm:inline">View Details</span>
                                             <span className="sm:hidden">Details</span>
                                         </Button>
                                         {app.interviewStatus === 'scheduled' && (
-                                            <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
+                                            <Button size="sm" className="bg-purple-500 hover:bg-purple-600" onClick={() => handleInterviewInfo(app)}>
                                                 <Calendar className="h-4 w-4 mr-1" />
                                                 <span className="hidden sm:inline">Interview Info</span>
                                                 <span className="sm:hidden">Interview</span>
@@ -233,7 +247,7 @@ export default function CandidateApplicationsPage() {
                                 </div>
                                 <div className="flex-1">
                                     <p className="font-semibold text-white">{app.jobTitle}</p>
-                                    <p className="text-sm text-gray-300">{app.jobCompany}</p>
+                                    <p className="text-sm text-gray-300">{app.candidateName}</p>
                                 </div>
                                 {getStatusBadge(app)}
                                 <span className="text-xs text-gray-400">{formatDate(app.appliedAt)}</span>
@@ -242,6 +256,168 @@ export default function CandidateApplicationsPage() {
                     </div>
                 </GlassCard>
             )}
+            </div>
+            
+            {/* Modal Components */}
+            <ApplicationDetailsModal 
+                showModal={showApplicationModal} 
+                application={selectedApplication} 
+                onClose={() => setShowApplicationModal(false)} 
+            />
+            <InterviewDetailsModal 
+                showModal={showInterviewModal} 
+                application={selectedApplication} 
+                onClose={() => setShowInterviewModal(false)} 
+            />
+        </>
+    )
+}
+
+// Application Details Modal Component
+function ApplicationDetailsModal({ showModal, application, onClose }: { showModal: boolean, application: any, onClose: () => void }) {
+    if (!showModal || !application) return null
+
+    const formatDate = (timestamp: number) => {
+        return new Date(timestamp).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        })
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between p-6 border-b border-gray-700">
+                    <h3 className="text-xl font-semibold text-white">Application Details</h3>
+                    <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 hover:text-white">
+                        <X className="h-5 w-5" />
+                    </Button>
+                </div>
+                <div className="p-6 space-y-6">
+                    {/* Job Information */}
+                    <div>
+                        <h4 className="text-lg font-semibold text-white mb-3">Job Information</h4>
+                        <div className="space-y-2">
+                            <p className="text-gray-300"><span className="font-medium">Position:</span> {application.jobTitle}</p>
+                            <p className="text-gray-300"><span className="font-medium">Company:</span> {application.jobCompany}</p>
+                            <p className="text-gray-300"><span className="font-medium">Applied:</span> {formatDate(application.appliedAt)}</p>
+                        </div>
+                    </div>
+
+                    {/* Candidate Information */}
+                    <div>
+                        <h4 className="text-lg font-semibold text-white mb-3">Your Information</h4>
+                        <div className="space-y-2">
+                            <p className="text-gray-300"><span className="font-medium">Name:</span> {application.candidateName}</p>
+                            <p className="text-gray-300"><span className="font-medium">Email:</span> {application.email}</p>
+                            <p className="text-gray-300"><span className="font-medium">Phone:</span> {application.phone}</p>
+                            <p className="text-gray-300"><span className="font-medium">Education:</span> {application.education}</p>
+                            <p className="text-gray-300"><span className="font-medium">Experience:</span> {application.experience}</p>
+                        </div>
+                    </div>
+
+                    {/* AI Screening Results */}
+                    {application.aiScore && (
+                        <div>
+                            <h4 className="text-lg font-semibold text-white mb-3">AI Screening Results</h4>
+                            <div className="bg-gray-800 rounded-lg p-4">
+                                <p className="text-gray-300"><span className="font-medium">AI Score:</span> {application.aiScore}%</p>
+                                <p className="text-gray-300"><span className="font-medium">Screening Status:</span> {application.screeningCompleted ? 'Completed' : 'Pending'}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Cover Letter */}
+                    {application.coverLetter && (
+                        <div>
+                            <h4 className="text-lg font-semibold text-white mb-3">Cover Letter</h4>
+                            <div className="bg-gray-800 rounded-lg p-4">
+                                <p className="text-gray-300 whitespace-pre-wrap">{application.coverLetter}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Decision Notes */}
+                    {application.decisionNotes && (
+                        <div>
+                            <h4 className="text-lg font-semibold text-white mb-3">Decision Notes</h4>
+                            <div className="bg-gray-800 rounded-lg p-4">
+                                <p className="text-gray-300">{application.decisionNotes}</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// Interview Details Modal Component  
+function InterviewDetailsModal({ showModal, application, onClose }: { showModal: boolean, application: any, onClose: () => void }) {
+    if (!showModal || !application) return null
+
+    const formatDate = (timestamp: number) => {
+        return new Date(timestamp).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        })
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-xl max-w-lg w-full">
+                <div className="flex items-center justify-between p-6 border-b border-gray-700">
+                    <h3 className="text-xl font-semibold text-white">Interview Information</h3>
+                    <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 hover:text-white">
+                        <X className="h-5 w-5" />
+                    </Button>
+                </div>
+                <div className="p-6">
+                    {application.interviewStatus === 'created' ? (
+                        <div className="text-center space-y-4">
+                            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
+                                <Mail className="h-8 w-8 text-orange-500" />
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-semibold text-white mb-2">Interview Details Sent</h4>
+                                <p className="text-gray-300">
+                                    Interview details have been sent to your email. Please check your inbox for instructions on how to complete the AI interview.
+                                </p>
+                            </div>
+                            {application.interviewBotUrl && (
+                                <Button 
+                                    className="bg-orange-500 hover:bg-orange-600"
+                                    onClick={() => window.open(application.interviewBotUrl, '_blank')}
+                                >
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    Start Interview
+                                </Button>
+                            )}
+                        </div>
+                    ) : application.interviewStatus === 'scheduled' ? (
+                        <div className="space-y-4">
+                            <div className="text-center">
+                                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Calendar className="h-8 w-8 text-purple-500" />
+                                </div>
+                                <h4 className="text-lg font-semibold text-white mb-2">Interview Scheduled</h4>
+                                <p className="text-gray-300">Your interview has been scheduled. You will receive further details via email.</p>
+                            </div>
+                            <div className="bg-gray-800 rounded-lg p-4">
+                                <p className="text-gray-300"><span className="font-medium">Job:</span> {application.jobTitle}</p>
+                                <p className="text-gray-300"><span className="font-medium">Company:</span> {application.jobCompany}</p>
+                                <p className="text-gray-300"><span className="font-medium">Scheduled:</span> {formatDate(application.interviewCreatedAt)}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center">
+                            <p className="text-gray-300">No interview information available.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     )
 }

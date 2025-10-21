@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { fsGetMyLeaves } from '@/lib/firestoreApi'
+import jsPDF from 'jspdf'
 
 const attendanceData = [
     { day: 'Mon', hours: 8 },
@@ -42,6 +43,40 @@ export default function EmployeeDashboard() {
 
     const handleUpdateProfile = () => {
         router.push('/dashboard/employee/profile')
+    }
+
+    const handleDownloadPDF = () => {
+        const doc = new jsPDF()
+        
+        // Add company header
+        doc.setFontSize(20)
+        doc.text('PAYSLIP', 105, 20, { align: 'center' })
+        
+        // Add employee info
+        doc.setFontSize(12)
+        doc.text('Employee: John Doe', 20, 40)
+        doc.text('Employee ID: EMP001', 20, 50)
+        doc.text('Department: Engineering', 20, 60)
+        doc.text('Pay Period: December 2024', 20, 70)
+        
+        // Add salary details
+        doc.setFontSize(14)
+        doc.text('EARNINGS', 20, 90)
+        doc.text('Gross Salary: ₹4,20,000', 30, 100)
+        
+        doc.text('DEDUCTIONS', 20, 120)
+        doc.text('Tax: ₹45,000', 30, 130)
+        doc.text('Provident Fund: ₹18,000', 30, 140)
+        
+        doc.setFontSize(16)
+        doc.text('NET SALARY: ₹3,57,000', 20, 160)
+        
+        // Add footer
+        doc.setFontSize(10)
+        doc.text('Generated on: ' + new Date().toLocaleDateString(), 20, 280)
+        
+        // Download the PDF
+        doc.save('payslip-december-2024.pdf')
     }
 
     useEffect(() => {
@@ -89,7 +124,7 @@ export default function EmployeeDashboard() {
                 <StatsCard
                     icon={DollarSign}
                     title="Current Salary"
-                    value="$5,200"
+                    value="₹4,20,000"
                     subtitle="Monthly gross"
                     delay={0.1}
                 />
@@ -175,22 +210,22 @@ export default function EmployeeDashboard() {
             <GlassCard delay={0.6}>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-semibold text-foreground">Latest Payslip</h3>
-                    <Button variant="outline" className="border-glass-border">
+                    <Button variant="outline" className="border-glass-border" onClick={handleDownloadPDF}>
                         Download PDF
                     </Button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="p-4 rounded-xl bg-muted/30 border border-glass-border">
                         <p className="text-sm text-muted-foreground mb-1">Gross Salary</p>
-                        <p className="text-2xl font-bold text-foreground">$5,200</p>
+                        <p className="text-2xl font-bold text-foreground">₹4,20,000</p>
                     </div>
                     <div className="p-4 rounded-xl bg-muted/30 border border-glass-border">
                         <p className="text-sm text-muted-foreground mb-1">Deductions</p>
-                        <p className="text-2xl font-bold text-foreground">$780</p>
+                        <p className="text-2xl font-bold text-foreground">₹63,000</p>
                     </div>
                     <div className="p-4 rounded-xl bg-muted/30 border border-glass-border">
                         <p className="text-sm text-muted-foreground mb-1">Net Salary</p>
-                        <p className="text-2xl font-bold text-accent">$4,420</p>
+                        <p className="text-2xl font-bold text-accent">₹3,57,000</p>
                     </div>
                 </div>
             </GlassCard>

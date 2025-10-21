@@ -54,7 +54,9 @@ export default function AdminUsersPage() {
     
     // Generate password if auto-generate is enabled
     const password = autoGeneratePassword ? generatePassword() : form.password
-    if (!password) {
+    
+    // Only require password when creating new users, not when editing
+    if (!form.id && !password) {
       alert('Please enter a password or enable auto-generation')
       return
     }
@@ -64,11 +66,11 @@ export default function AdminUsersPage() {
         const updated = await fsUpdateUser(form.id, form)
         setUsers((prev) => prev.map((u) => (u.id === form.id ? { ...u, ...updated } : u)))
       } else {
-        const created = await fsCreateUserWithAuth({ ...form, password })
+        const created = await fsCreateUserWithAuth({ ...form, password: password! })
         setUsers((prev) => [...prev, created])
         
         // Show credentials popup
-        setCreatedCredentials({ email: form.email, password })
+        setCreatedCredentials({ email: form.email, password: password! })
         setShowCredentials(true)
       }
       setOpen(false)

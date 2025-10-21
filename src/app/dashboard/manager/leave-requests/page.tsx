@@ -37,7 +37,7 @@ export default function ManagerLeaveRequestsPage() {
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading leave requests...</p>
+                    <p className="text-gray-300">Loading leave requests...</p>
                 </div>
             </div>
         )
@@ -46,33 +46,33 @@ export default function ManagerLeaveRequestsPage() {
     return (
         <div className="space-y-6 max-w-7xl">
             <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Leave Requests</h2>
-                <p className="text-gray-600">Review and approve leave requests from your team</p>
+                <h2 className="text-3xl font-bold text-white mb-2">Leave Requests</h2>
+                <p className="text-gray-300">Review and approve leave requests from your team</p>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <GlassCard delay={0.1}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Pending</p>
+                        <p className="text-sm text-gray-300 mb-1">Pending</p>
                         <p className="text-3xl font-bold text-yellow-500">{leaves.length}</p>
                     </div>
                 </GlassCard>
                 <GlassCard delay={0.15}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Approved</p>
+                        <p className="text-sm text-gray-300 mb-1">Approved</p>
                         <p className="text-3xl font-bold text-green-500">12</p>
                     </div>
                 </GlassCard>
                 <GlassCard delay={0.2}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Rejected</p>
+                        <p className="text-sm text-gray-300 mb-1">Rejected</p>
                         <p className="text-3xl font-bold text-red-500">3</p>
                     </div>
                 </GlassCard>
                 <GlassCard delay={0.25}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">This Month</p>
+                        <p className="text-sm text-gray-300 mb-1">This Month</p>
                         <p className="text-3xl font-bold text-orange-500">18</p>
                     </div>
                 </GlassCard>
@@ -89,8 +89,8 @@ export default function ManagerLeaveRequestsPage() {
                                         <User className="h-6 w-6 text-orange-500" />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-1">{request.employee || 'Team Member'}</h3>
-                                        <p className="text-sm text-gray-600 mb-2">{request.type || 'Leave Request'} • {request.days || 1} days</p>
+                                        <h3 className="text-lg font-semibold text-white mb-1">{request.employee || 'Team Member'}</h3>
+                                        <p className="text-sm text-gray-300 mb-2">{request.type || 'Leave Request'} • {request.days || 1} days</p>
                                         <div className="flex flex-wrap gap-3 text-xs text-gray-500">
                                             <span className="flex items-center gap-1">
                                                 <Calendar className="h-3 w-3" />
@@ -134,7 +134,7 @@ export default function ManagerLeaveRequestsPage() {
                     <GlassCard delay={0.3}>
                         <div className="text-center py-8">
                             <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600">No pending leave requests</p>
+                            <p className="text-gray-300">No pending leave requests</p>
                         </div>
                     </GlassCard>
                 )}
@@ -142,7 +142,7 @@ export default function ManagerLeaveRequestsPage() {
 
             {/* Recent Decisions */}
             <GlassCard delay={0.4}>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Decisions</h3>
+                <h3 className="text-xl font-semibold text-white mb-4">Recent Decisions</h3>
                 <div className="space-y-3">
                     {[
                         { employee: 'John Doe', type: 'Vacation', days: 5, status: 'approved', date: 'Jan 15, 2025' },
@@ -160,8 +160,8 @@ export default function ManagerLeaveRequestsPage() {
                                     )}
                                 </div>
                                 <div>
-                                    <p className="font-semibold text-gray-900">{decision.employee}</p>
-                                    <p className="text-sm text-gray-600">{decision.type} • {decision.days} days</p>
+                                    <p className="font-semibold text-white">{decision.employee}</p>
+                                    <p className="text-sm text-gray-300">{decision.type} • {decision.days} days</p>
                                 </div>
                             </div>
                             <span className={`text-xs px-2 py-1 rounded-full ${decision.status === 'approved'

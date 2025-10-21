@@ -66,7 +66,6 @@ const roleMenuItems = {
         { icon: Briefcase, label: "Jobs", path: "/dashboard/candidate/jobs" },
         { icon: FileText, label: "My Applications", path: "/dashboard/candidate/applications" },
         { icon: Video, label: "AI Interview", path: "/dashboard/candidate/interview" },
-        { icon: CheckCircle, label: "Results", path: "/dashboard/candidate/result" },
     ],
 };
 

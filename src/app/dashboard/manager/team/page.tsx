@@ -28,7 +28,7 @@ export default function ManagerTeamPage() {
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading team...</p>
+                    <p className="text-gray-300">Loading team...</p>
                 </div>
             </div>
         )
@@ -37,34 +37,34 @@ export default function ManagerTeamPage() {
     return (
         <div className="space-y-6 max-w-7xl">
             <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">My Team</h2>
-                <p className="text-gray-600">Manage and monitor your team members</p>
+                <h2 className="text-3xl font-bold text-white mb-2">My Team</h2>
+                <p className="text-gray-300">Manage and monitor your team members</p>
             </div>
 
             {/* Team Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <GlassCard delay={0.1}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Total Members</p>
+                        <p className="text-sm text-gray-300 mb-1">Total Members</p>
                         <p className="text-3xl font-bold text-orange-500">{teamMembers.length}</p>
                     </div>
                 </GlassCard>
                 <GlassCard delay={0.15}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Online Now</p>
+                        <p className="text-sm text-gray-300 mb-1">Online Now</p>
                         <p className="text-3xl font-bold text-green-400">{teamMembers.filter(m => m.status === 'online').length}</p>
                     </div>
                 </GlassCard>
                 <GlassCard delay={0.2}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Avg Performance</p>
+                        <p className="text-sm text-gray-300 mb-1">Avg Performance</p>
                         <p className="text-3xl font-bold text-blue-500">88%</p>
                     </div>
                 </GlassCard>
                 <GlassCard delay={0.25}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Projects Active</p>
-                        <p className="text-3xl font-bold text-gray-900">8</p>
+                        <p className="text-sm text-gray-300 mb-1">Projects Active</p>
+                        <p className="text-3xl font-bold text-white">8</p>
                     </div>
                 </GlassCard>
             </div>
@@ -83,8 +83,8 @@ export default function ManagerTeamPage() {
                                         }`} />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{member.name || 'Team Member'}</h3>
-                                    <p className="text-sm text-gray-600 mb-3">{member.role || 'Employee'}</p>
+                                    <h3 className="text-lg font-semibold text-white mb-1">{member.name || 'Team Member'}</h3>
+                                    <p className="text-sm text-gray-300 mb-3">{member.role || 'Employee'}</p>
                                     <div className="flex flex-wrap gap-3 text-xs text-gray-500">
                                         <span className="flex items-center gap-1">
                                             <Mail className="h-3 w-3" />
@@ -101,7 +101,7 @@ export default function ManagerTeamPage() {
                                 <div className="flex items-center gap-2">
                                     <Award className="h-5 w-5 text-orange-500" />
                                     <div>
-                                        <p className="text-xs text-gray-600">Performance</p>
+                                        <p className="text-xs text-gray-300">Performance</p>
                                         <p className="text-xl font-bold text-orange-500">{member.performance || 85}%</p>
                                     </div>
                                 </div>

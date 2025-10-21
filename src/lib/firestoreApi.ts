@@ -223,11 +223,12 @@ export async function fsGetMyAttendance() {
     return qSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
 }
 
-export async function fsMarkAttendance(status: 'present' | 'absent') {
+export async function fsMarkAttendance(status: 'checkIn' | 'checkOut') {
     const uid = auth.currentUser?.uid
     if (!uid) return { success: false }
     const today = new Date().toISOString().split('T')[0]
     const timestamp = new Date().toISOString()
+    const timeOnly = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })
 
     // Check if attendance already marked for today
     const existingSnap = await getDocs(query(
@@ -237,17 +238,44 @@ export async function fsMarkAttendance(status: 'present' | 'absent') {
     ))
 
     if (existingSnap.docs.length > 0) {
-        // Update existing record
-        await updateDoc(doc(db, 'attendance', existingSnap.docs[0].id), { status, timestamp })
+        const existingDoc = existingSnap.docs[0]
+        const existingData = existingDoc.data()
+        
+        if (status === 'checkIn') {
+            // Update check-in time
+            await updateDoc(doc(db, 'attendance', existingDoc.id), { 
+                checkIn: timeOnly,
+                checkInTimestamp: timestamp,
+                updatedAt: Date.now()
+            })
+        } else if (status === 'checkOut') {
+            // Update check-out time and calculate duration
+            const checkInTime = existingData.checkIn
+            const checkInDateTime = new Date(`${today}T${checkInTime}`)
+            const checkOutDateTime = new Date()
+            const durationMs = checkOutDateTime.getTime() - checkInDateTime.getTime()
+            const durationHours = Math.round((durationMs / (1000 * 60 * 60)) * 100) / 100
+            
+            await updateDoc(doc(db, 'attendance', existingDoc.id), { 
+                checkOut: timeOnly,
+                checkOutTimestamp: timestamp,
+                duration: durationHours,
+                status: 'present',
+                updatedAt: Date.now()
+            })
+        }
     } else {
-        // Create new record
-        await addDoc(collection(db, 'attendance'), {
-            uid,
-            date: today,
-            status,
-            timestamp,
-            createdAt: Date.now()
-        })
+        // Create new record for check-in
+        if (status === 'checkIn') {
+            await addDoc(collection(db, 'attendance'), {
+                uid,
+                date: today,
+                checkIn: timeOnly,
+                checkInTimestamp: timestamp,
+                status: 'present',
+                createdAt: Date.now()
+            })
+        }
     }
     return { success: true }
 }
@@ -571,7 +599,7 @@ export async function fsGetUserProfile() {
     const uid = auth.currentUser?.uid
     if (!uid) return null
 
-    const docRef = doc(db, 'profiles', uid)
+    const docRef = doc(db, 'users', uid)
     const docSnap = await getDoc(docRef)
 
     if (docSnap.exists()) {
@@ -584,14 +612,17 @@ export async function fsUpdateUserProfile(profileData: any) {
     const uid = auth.currentUser?.uid
     if (!uid) return { success: false }
 
-    const docRef = doc(db, 'profiles', uid)
+    const docRef = doc(db, 'users', uid)
     try {
-        await updateDoc(docRef, profileData)
-    } catch {
-        // If document doesn't exist, create it
-        await addDoc(collection(db, 'profiles'), { uid, ...profileData })
+        await updateDoc(docRef, {
+            ...profileData,
+            updatedAt: Date.now()
+        })
+        return { success: true }
+    } catch (error) {
+        console.error('Error updating profile:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
-    return { success: true }
 }
 
 export async function fsGetFeedback() {

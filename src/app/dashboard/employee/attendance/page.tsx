@@ -50,11 +50,18 @@ export default function EmployeeAttendancePage() {
 
     const handleCheckInOut = async () => {
         try {
-            await fsMarkAttendance(isCheckedIn ? 'absent' : 'present')
-            setIsCheckedIn(!isCheckedIn)
+            const action = isCheckedIn ? 'checkOut' : 'checkIn'
+            await fsMarkAttendance(action)
+            
             // Refresh attendance data
             const attendanceData = await fsGetMyAttendance()
             setAttendance(attendanceData)
+            
+            // Update UI state
+            setIsCheckedIn(!isCheckedIn)
+            if (action === 'checkOut') {
+                setCurrentHours('0h 0m')
+            }
         } catch (error) {
             console.error('Error marking attendance:', error)
         }
