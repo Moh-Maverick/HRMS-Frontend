@@ -1,5 +1,5 @@
 import { auth, db } from '@/lib/firebase'
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore'
 
 // Debug environment variables
 console.log('🔧 Environment check:', {
@@ -47,10 +47,28 @@ export async function fsGetUsers() {
     const snap = await getDocs(collection(db, 'users'))
     return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
 }
-export async function fsCreateUser(payload: { name: string; email: string; role: string; department?: string }) {
-    const ref = await addDoc(collection(db, 'users'), payload)
-    if (payload.department) await recalcDeptCount(payload.department)
-    return { id: ref.id, ...payload }
+export async function fsCreateUserWithAuth(payload: { 
+  name: string; 
+  email: string; 
+  password: string;
+  role: string; 
+  department?: string 
+}) {
+  // Use Firebase Auth to create user
+  const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth')
+  const auth = getAuth()
+  const userCredential = await createUserWithEmailAndPassword(auth, payload.email, payload.password)
+  
+  // Store user metadata in Firestore
+  await setDoc(doc(db, 'users', userCredential.user.uid), {
+    email: payload.email,
+    role: payload.role,
+    name: payload.name,
+    department: payload.department || ''
+  })
+  
+  if (payload.department) await recalcDeptCount(payload.department)
+  return { id: userCredential.user.uid, ...payload }
 }
 export async function fsUpdateUser(id: string, payload: Partial<{ name: string; email: string; role: string; department?: string }>) {
     const before = await getDoc(doc(db, 'users', id))
@@ -487,13 +505,6 @@ export async function screenResume(resumeBase64: string, resumeFileName: string,
     }
 }
 
-export async function fsGetCandidateInterviews() {
-    const uid = auth.currentUser?.uid
-    if (!uid) return []
-
-    const snap = await getDocs(query(collection(db, 'interviews'), where('candidate', '==', uid)))
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
-}
 
 export const fsGetCandidateProfile = async () => {
     const user = auth.currentUser;
@@ -670,4 +681,174 @@ export async function fsUpdateScreeningResults(applicationId: string, screeningD
         console.error('Error storing screening results:', error)
         return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
+}
+
+// INTERVIEW WORKFLOW FUNCTIONS
+
+// Push candidate to interview
+export async function fsPushToInterview(applicationId: string, candidateData: {
+    uid: string
+    name: string
+    jobId: string
+    jobTitle: string
+}) {
+    try {
+        // Update application with interview status
+        const applicationRef = doc(db, 'applications', applicationId)
+        await updateDoc(applicationRef, {
+            interviewStatus: 'scheduled',
+            interviewCreatedAt: Date.now()
+        })
+
+        // Create interview record
+        const interviewData = {
+            applicationId,
+            candidateUid: candidateData.uid,
+            candidateName: candidateData.name,
+            jobId: candidateData.jobId,
+            jobTitle: candidateData.jobTitle,
+            status: 'pending_creation',
+            createdAt: Date.now(),
+            scheduledBy: auth.currentUser?.uid || 'unknown'
+        }
+
+        const interviewRef = await addDoc(collection(db, 'interviews'), interviewData)
+        console.log('Candidate pushed to interview successfully')
+        return { success: true, interviewId: interviewRef.id }
+    } catch (error) {
+        console.error('Error pushing to interview:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+}
+
+// Mark interview as created
+export async function fsMarkInterviewCreated(applicationId: string, interviewBotUrl: string) {
+    try {
+        // Update application
+        const applicationRef = doc(db, 'applications', applicationId)
+        await updateDoc(applicationRef, {
+            interviewStatus: 'created',
+            interviewBotUrl
+        })
+
+        // Update interview record
+        const interviewQuery = query(collection(db, 'interviews'), where('applicationId', '==', applicationId))
+        const interviewSnap = await getDocs(interviewQuery)
+        
+        if (!interviewSnap.empty) {
+            const interviewDoc = interviewSnap.docs[0]
+            await updateDoc(doc(db, 'interviews', interviewDoc.id), {
+                status: 'created',
+                interviewBotUrl
+            })
+        }
+
+        console.log('Interview marked as created successfully')
+        return { success: true }
+    } catch (error) {
+        console.error('Error marking interview as created:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+}
+
+// Get interviews for HR
+export async function fsGetAllInterviews() {
+    try {
+        const snap = await getDocs(collection(db, 'interviews'))
+        return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+    } catch (error) {
+        console.error('Error fetching interviews:', error)
+        return []
+    }
+}
+
+// Get interviews for candidate
+export async function fsGetCandidateInterviews(uid: string) {
+    try {
+        const snap = await getDocs(query(collection(db, 'interviews'), where('candidateUid', '==', uid)))
+        return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+    } catch (error) {
+        console.error('Error fetching candidate interviews:', error)
+        return []
+    }
+}
+
+// Update application decision
+export async function fsUpdateApplicationDecision(applicationId: string, decision: 'accepted' | 'rejected', notes?: string) {
+    try {
+        const applicationRef = doc(db, 'applications', applicationId)
+        await updateDoc(applicationRef, {
+            finalDecision: decision,
+            decisionDate: Date.now(),
+            status: decision,
+            ...(notes && { decisionNotes: notes })
+        })
+
+        console.log(`Application ${decision} successfully`)
+        return { success: true }
+    } catch (error) {
+        console.error('Error updating application decision:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+}
+
+// Get candidate applications with real-time listener
+export function fsSubscribeToCandidateApplications(uid: string, callback: (applications: any[]) => void) {
+    const q = query(collection(db, 'applications'), where('uid', '==', uid))
+    
+    return onSnapshot(q, async (snapshot) => {
+        const applications = snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+        
+        // Get job details for each application
+        const applicationsWithJobDetails = await Promise.all(
+            applications.map(async (app) => {
+                try {
+                    // Try to get job details from jobs collection first
+                    const jobSnap = await getDocs(query(collection(db, 'jobs'), where('__name__', '==', app.jobId)))
+                    if (!jobSnap.empty) {
+                        const jobData = jobSnap.docs[0].data()
+                        return {
+                            ...app,
+                            jobTitle: jobData.title || jobData.role || 'Unknown Position',
+                            jobCompany: jobData.company || 'Unknown Company',
+                            jobLocation: jobData.location || 'Unknown Location',
+                            jobDepartment: jobData.department || 'Unknown Department'
+                        }
+                    }
+                    
+                    // Fallback to job_descriptions collection
+                    const jdSnap = await getDocs(query(collection(db, 'job_descriptions'), where('__name__', '==', app.jobId)))
+                    if (!jdSnap.empty) {
+                        const jdData = jdSnap.docs[0].data()
+                        return {
+                            ...app,
+                            jobTitle: jdData.role || jdData.title || 'Unknown Position',
+                            jobCompany: 'Our Company',
+                            jobLocation: jdData.location || 'Unknown Location',
+                            jobDepartment: jdData.department || 'Unknown Department'
+                        }
+                    }
+                    
+                    return {
+                        ...app,
+                        jobTitle: 'Unknown Position',
+                        jobCompany: 'Unknown Company',
+                        jobLocation: 'Unknown Location',
+                        jobDepartment: 'Unknown Department'
+                    }
+                } catch (error) {
+                    console.error('Error fetching job details for application:', app.id, error)
+                    return {
+                        ...app,
+                        jobTitle: 'Unknown Position',
+                        jobCompany: 'Unknown Company',
+                        jobLocation: 'Unknown Location',
+                        jobDepartment: 'Unknown Department'
+                    }
+                }
+            })
+        )
+        
+        callback(applicationsWithJobDetails)
+    })
 }

@@ -2,61 +2,29 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { GlassCard } from '@/components/dashboard/GlassCard'
 import { Button } from '@/components/ui/button'
-import { Calendar, Clock, Video, MapPin, Users, CheckCircle } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Calendar, Clock, Video, MapPin, Users, CheckCircle, ExternalLink, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { fsGetCandidateInterviews } from '@/lib/firestoreApi'
-
-const upcomingInterviews = [
-    {
-        id: '1',
-        company: 'TechCorp Inc.',
-        position: 'Senior Developer',
-        date: 'Jan 18, 2025',
-        time: '2:00 PM',
-        type: 'Technical Interview',
-        mode: 'Video Call',
-        interviewer: 'John Manager',
-        status: 'scheduled',
-        meetingLink: 'https://meet.google.com/abc-defg-hij'
-    },
-    {
-        id: '2',
-        company: 'StartupXYZ',
-        position: 'Full Stack Engineer',
-        date: 'Jan 20, 2025',
-        time: '10:00 AM',
-        type: 'HR Interview',
-        mode: 'In-person',
-        interviewer: 'Sarah HR',
-        status: 'scheduled',
-        location: '123 Main St, Bangalore'
-    },
-    {
-        id: '3',
-        company: 'Design Studio',
-        position: 'UI Designer',
-        date: 'Jan 15, 2025',
-        time: '3:00 PM',
-        type: 'Design Review',
-        mode: 'Video Call',
-        interviewer: 'Mike Designer',
-        status: 'completed',
-        meetingLink: 'https://meet.google.com/xyz-uvw-rst'
-    }
-]
+import { auth } from '@/lib/firebase'
 
 export default function CandidateInterviewsPage() {
     const [interviews, setInterviews] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        const user = auth.currentUser
+        if (!user) {
+            setLoading(false)
+            return
+        }
+
         const fetchInterviews = async () => {
             try {
-                const interviewsData = await fsGetCandidateInterviews()
-                setInterviews(interviewsData.length > 0 ? interviewsData : upcomingInterviews)
+                const interviewsData = await fsGetCandidateInterviews(user.uid)
+                setInterviews(interviewsData)
             } catch (error) {
                 console.error('Error fetching interviews:', error)
-                setInterviews(upcomingInterviews)
             } finally {
                 setLoading(false)
             }
@@ -64,30 +32,25 @@ export default function CandidateInterviewsPage() {
         fetchInterviews()
     }, [])
 
-    const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'scheduled':
-                return 'bg-blue-100 text-blue-800'
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'pending_creation':
+                return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
+            case 'created':
+                return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30"><Video className="h-3 w-3 mr-1" />Scheduled</Badge>
             case 'completed':
-                return 'bg-green-100 text-green-800'
-            case 'cancelled':
-                return 'bg-red-100 text-red-800'
+                return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle className="h-3 w-3 mr-1" />Completed</Badge>
             default:
-                return 'bg-gray-100 text-gray-800'
+                return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">{status}</Badge>
         }
     }
 
-    const getStatusIcon = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'scheduled':
-                return <Clock className="h-4 w-4" />
-            case 'completed':
-                return <CheckCircle className="h-4 w-4" />
-            case 'cancelled':
-                return <Calendar className="h-4 w-4" />
-            default:
-                return <Calendar className="h-4 w-4" />
-        }
+    const formatDate = (timestamp: number) => {
+        return new Date(timestamp).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        })
     }
 
     if (loading) {
@@ -115,140 +78,91 @@ export default function CandidateInterviewsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <GlassCard delay={0.1}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Scheduled</p>
-                        <p className="text-3xl font-bold text-blue-500">{interviews.filter(i => i.status === 'scheduled').length}</p>
+                        <p className="text-sm text-gray-600 mb-1">Total Interviews</p>
+                        <p className="text-3xl font-bold text-blue-500">{interviews.length}</p>
                     </div>
                 </GlassCard>
                 <GlassCard delay={0.15}>
+                    <div className="text-center">
+                        <p className="text-sm text-gray-600 mb-1">Scheduled</p>
+                        <p className="text-3xl font-bold text-purple-500">{interviews.filter(i => i.status === 'created').length}</p>
+                    </div>
+                </GlassCard>
+                <GlassCard delay={0.2}>
+                    <div className="text-center">
+                        <p className="text-sm text-gray-600 mb-1">Pending</p>
+                        <p className="text-3xl font-bold text-yellow-500">{interviews.filter(i => i.status === 'pending_creation').length}</p>
+                    </div>
+                </GlassCard>
+                <GlassCard delay={0.25}>
                     <div className="text-center">
                         <p className="text-sm text-gray-600 mb-1">Completed</p>
                         <p className="text-3xl font-bold text-green-500">{interviews.filter(i => i.status === 'completed').length}</p>
                     </div>
                 </GlassCard>
-                <GlassCard delay={0.2}>
-                    <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">This Week</p>
-                        <p className="text-3xl font-bold text-orange-500">2</p>
-                    </div>
-                </GlassCard>
-                <GlassCard delay={0.25}>
-                    <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Success Rate</p>
-                        <p className="text-3xl font-bold text-purple-500">75%</p>
-                    </div>
-                </GlassCard>
             </div>
 
-            {/* Upcoming Interviews */}
-            <GlassCard delay={0.3}>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Upcoming Interviews</h3>
-                <div className="space-y-4">
-                    {interviews.filter(i => i.status === 'scheduled').length > 0 ? (
-                        interviews.filter(i => i.status === 'scheduled').map((interview, index) => (
-                            <div key={index} className="p-4 rounded-xl bg-gray-50 border border-gray-200">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Interview List */}
+            <div className="space-y-4">
+                {interviews.length > 0 ? (
+                    interviews.map((interview, index) => (
+                        <GlassCard key={interview.id} delay={0.3 + index * 0.05}>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-start gap-4">
+                                    <div className="p-3 rounded-xl bg-orange-100 border border-orange-200">
+                                        <Calendar className="h-6 w-6 text-orange-500" />
+                                    </div>
                                     <div className="flex-1">
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div>
-                                                <h4 className="font-semibold text-gray-900 text-lg">{interview.position}</h4>
-                                                <p className="text-sm text-gray-600">{interview.company}</p>
-                                            </div>
-                                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(interview.status)}`}>
-                                                {getStatusIcon(interview.status)}
-                                                {interview.status}
+                                        <h3 className="text-lg font-semibold text-gray-900">{interview.jobTitle}</h3>
+                                        <p className="text-sm text-gray-600 mb-2">Our Company</p>
+                                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                                            <span className="flex items-center gap-1">
+                                                <Calendar className="h-3 w-3" />
+                                                Scheduled: {formatDate(interview.createdAt)}
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                <Users className="h-3 w-3" />
+                                                AI Interview Bot
                                             </span>
                                         </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                            <div className="flex items-center gap-2 text-gray-600">
-                                                <Calendar className="h-4 w-4 text-orange-500" />
-                                                <span>{interview.date}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-gray-600">
-                                                <Clock className="h-4 w-4 text-orange-500" />
-                                                <span>{interview.time}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-gray-600">
-                                                <Users className="h-4 w-4 text-orange-500" />
-                                                <span>{interview.interviewer}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-gray-600">
-                                                {interview.mode === 'Video Call' ? (
-                                                    <><Video className="h-4 w-4 text-orange-500" /><span>{interview.mode}</span></>
-                                                ) : (
-                                                    <><MapPin className="h-4 w-4 text-orange-500" /><span>{interview.mode}</span></>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {interview.type && (
-                                            <p className="text-sm text-gray-700 mt-2 bg-white p-2 rounded border">
-                                                <strong>Type:</strong> {interview.type}
+                                        {interview.status === 'pending_creation' && (
+                                            <p className="text-sm text-yellow-600 mt-2 bg-yellow-50 p-2 rounded">
+                                                Your interview is being prepared. You will receive details soon.
+                                            </p>
+                                        )}
+                                        {interview.status === 'created' && (
+                                            <p className="text-sm text-blue-600 mt-2 bg-blue-50 p-2 rounded flex items-center gap-2">
+                                                <Mail className="h-4 w-4" />
+                                                Interview code has been sent to your email. Please check your inbox.
                                             </p>
                                         )}
                                     </div>
-
-                                    <div className="flex flex-col gap-2">
-                                        {interview.mode === 'Video Call' && interview.meetingLink && (
-                                            <Button
-                                                className="gap-2 bg-orange-500 hover:bg-orange-600"
-                                                onClick={() => window.open(interview.meetingLink, '_blank')}
-                                            >
-                                                <Video className="h-4 w-4" />
-                                                Join Call
-                                            </Button>
-                                        )}
-                                        <Button variant="outline" className="border-gray-300">
-                                            View Details
+                                </div>
+                                <div className="flex flex-col md:items-end gap-3">
+                                    {getStatusBadge(interview.status)}
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button size="sm" variant="outline" className="border-gray-300">
+                                            <span className="hidden sm:inline">View Details</span>
+                                            <span className="sm:hidden">Details</span>
                                         </Button>
                                     </div>
                                 </div>
                             </div>
-                        ))
-                    ) : (
+                        </GlassCard>
+                    ))
+                ) : (
+                    <GlassCard delay={0.3}>
                         <div className="text-center py-8">
                             <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600">No upcoming interviews</p>
+                            <p className="text-gray-600 mb-2">No interviews scheduled</p>
+                            <p className="text-sm text-gray-500">Interviews will appear here once HR schedules them</p>
                         </div>
-                    )}
-                </div>
-            </GlassCard>
-
-            {/* Interview History */}
-            <GlassCard delay={0.4}>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Interview History</h3>
-                <div className="space-y-3">
-                    {interviews.filter(i => i.status === 'completed').length > 0 ? (
-                        interviews.filter(i => i.status === 'completed').map((interview, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                                        <CheckCircle className="h-4 w-4 text-green-500" />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-900">{interview.position}</p>
-                                        <p className="text-sm text-gray-600">{interview.company}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <span className="text-sm text-gray-500">{interview.date}</span>
-                                    <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(interview.status)}`}>
-                                        {interview.status}
-                                    </span>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="text-center py-8">
-                            <CheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600">No completed interviews yet</p>
-                        </div>
-                    )}
-                </div>
-            </GlassCard>
+                    </GlassCard>
+                )}
+            </div>
 
             {/* Interview Tips */}
-            <GlassCard delay={0.5}>
+            <GlassCard delay={0.4}>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Interview Tips</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">

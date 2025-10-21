@@ -47,7 +47,7 @@ const roleMenuItems = {
         { icon: Briefcase, label: "Jobs", path: "/dashboard/hr/jobs" },
         { icon: Users, label: "Candidates", path: "/dashboard/hr/candidates" },
         { icon: Calendar, label: "Interviews", path: "/dashboard/hr/interviews" },
-        { icon: FileText, label: "Reports", path: "/dashboard/hr/offers" },
+        { icon: FileText, label: "Reports", path: "/dashboard/hr/reports" },
     ],
     manager: [
         { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard/manager" },

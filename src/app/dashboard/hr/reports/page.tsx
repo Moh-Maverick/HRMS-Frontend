@@ -1,8 +1,9 @@
 "use client"
 import { GlassCard } from '@/components/dashboard/GlassCard'
 import { Button } from '@/components/ui/button'
-import { FileText, Download, TrendingUp, Users, Clock } from 'lucide-react'
+import { FileText, Download, TrendingUp, Users, Clock, Calendar } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
+import { useState } from 'react'
 
 const hiringSourceData = [
     { name: 'LinkedIn', value: 45, color: '#F7A800' },
@@ -21,21 +22,58 @@ const monthlyHires = [
 ]
 
 export default function HRReportsPage() {
+    const [isExporting, setIsExporting] = useState(false)
+
+    const handleExportReport = async () => {
+        setIsExporting(true)
+        try {
+            // Simulate export process
+            await new Promise(resolve => setTimeout(resolve, 2000))
+            
+            // Create a simple CSV report
+            const csvContent = [
+                'Report Type,Value,Date',
+                'Total Hires,93,2025-01-21',
+                'Avg Time to Hire,18 days,2025-01-21',
+                'Offer Accept Rate,87%,2025-01-21',
+                'Active Jobs,12,2025-01-21'
+            ].join('\n')
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' })
+            const url = window.URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = `hr-report-${new Date().toISOString().split('T')[0]}.csv`
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            window.URL.revokeObjectURL(url)
+        } catch (error) {
+            console.error('Export failed:', error)
+        } finally {
+            setIsExporting(false)
+        }
+    }
+
     return (
         <div className="space-y-6 max-w-7xl">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold text-foreground mb-2">HR Reports</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">HR Reports</h2>
                     <p className="text-muted-foreground">Analytics and insights for recruitment</p>
                 </div>
-                <Button className="gap-2">
+                <Button 
+                    className="gap-2 w-full sm:w-auto" 
+                    onClick={handleExportReport}
+                    disabled={isExporting}
+                >
                     <Download className="h-4 w-4" />
-                    Export Report
+                    {isExporting ? 'Exporting...' : 'Export Report'}
                 </Button>
             </div>
 
             {/* Key Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <GlassCard delay={0.1}>
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-accent/10 border border-accent/20">
@@ -86,91 +124,142 @@ export default function HRReportsPage() {
             </div>
 
             {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <GlassCard delay={0.3}>
-                    <h3 className="text-xl font-semibold text-foreground mb-4">Hiring Sources</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie
-                                data={hiringSourceData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={100}
-                                paddingAngle={5}
-                                dataKey="value"
-                            >
-                                {hiringSourceData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                                    border: '2px solid #F7A800',
-                                    borderRadius: '12px',
-                                    color: '#FFFFFF',
-                                    fontWeight: 'bold',
-                                    fontSize: '14px',
-                                    padding: '12px 16px',
-                                    boxShadow: '0 8px 32px rgba(247, 168, 0, 0.3)'
-                                }}
-                                labelStyle={{
-                                    color: '#F7A800',
-                                    fontWeight: 'bold',
-                                    fontSize: '16px'
-                                }}
-                            />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-semibold text-foreground">Hiring Sources</h3>
+                        <div className="text-sm text-muted-foreground">Total: 100%</div>
+                    </div>
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={hiringSourceData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={100}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                >
+                                    {hiringSourceData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Pie>
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                                        border: '2px solid #F7A800',
+                                        borderRadius: '12px',
+                                        color: '#FFFFFF',
+                                        fontWeight: 'bold',
+                                        fontSize: '14px',
+                                        padding: '12px 16px',
+                                        boxShadow: '0 8px 32px rgba(247, 168, 0, 0.3)'
+                                    }}
+                                    labelStyle={{
+                                        color: '#F7A800',
+                                        fontWeight: 'bold',
+                                        fontSize: '16px'
+                                    }}
+                                    formatter={(value: any, name: any) => [`${value}%`, name]}
+                                />
+                                <Legend 
+                                    wrapperStyle={{ 
+                                        fontSize: '14px', 
+                                        color: 'rgba(255, 255, 255, 0.8)',
+                                        paddingTop: '20px'
+                                    }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
                 </GlassCard>
 
                 <GlassCard delay={0.35}>
-                    <h3 className="text-xl font-semibold text-foreground mb-4">Monthly Hiring Trend</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={monthlyHires}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                            <XAxis dataKey="month" stroke="rgba(255,255,255,0.5)" />
-                            <YAxis stroke="rgba(255,255,255,0.5)" />
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                                    border: '2px solid #F7A800',
-                                    borderRadius: '12px',
-                                    color: '#FFFFFF',
-                                    fontWeight: 'bold',
-                                    fontSize: '14px',
-                                    padding: '12px 16px',
-                                    boxShadow: '0 8px 32px rgba(247, 168, 0, 0.3)'
-                                }}
-                            />
-                            <Bar dataKey="hires" fill="#F7A800" radius={[8, 8, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-semibold text-foreground">Monthly Hiring Trend</h3>
+                        <div className="text-sm text-muted-foreground">Last 6 months</div>
+                    </div>
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={monthlyHires} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                <XAxis 
+                                    dataKey="month" 
+                                    stroke="rgba(255,255,255,0.5)" 
+                                    fontSize={12}
+                                    tickLine={false}
+                                />
+                                <YAxis 
+                                    stroke="rgba(255,255,255,0.5)" 
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                                        border: '2px solid #F7A800',
+                                        borderRadius: '12px',
+                                        color: '#FFFFFF',
+                                        fontWeight: 'bold',
+                                        fontSize: '14px',
+                                        padding: '12px 16px',
+                                        boxShadow: '0 8px 32px rgba(247, 168, 0, 0.3)'
+                                    }}
+                                    labelStyle={{
+                                        color: '#F7A800',
+                                        fontWeight: 'bold',
+                                        fontSize: '16px'
+                                    }}
+                                    formatter={(value: any) => [`${value} hires`, 'Hires']}
+                                />
+                                <Bar 
+                                    dataKey="hires" 
+                                    fill="#F7A800" 
+                                    radius={[8, 8, 0, 0]}
+                                    stroke="#F7A800"
+                                    strokeWidth={2}
+                                />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </GlassCard>
             </div>
 
             {/* Recent Reports */}
             <GlassCard delay={0.4}>
-                <h3 className="text-xl font-semibold text-foreground mb-4">Generated Reports</h3>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold text-foreground">Generated Reports</h3>
+                    <div className="text-sm text-muted-foreground">3 reports available</div>
+                </div>
                 <div className="space-y-3">
                     {[
-                        { name: 'Q4 2024 Hiring Report', date: 'Jan 5, 2025', size: '2.4 MB' },
-                        { name: 'December Recruitment Analytics', date: 'Jan 1, 2025', size: '1.8 MB' },
-                        { name: 'Year End Summary 2024', date: 'Dec 28, 2024', size: '3.2 MB' },
+                        { name: 'Q4 2024 Hiring Report', date: 'Jan 5, 2025', size: '2.4 MB', type: 'PDF' },
+                        { name: 'December Recruitment Analytics', date: 'Jan 1, 2025', size: '1.8 MB', type: 'Excel' },
+                        { name: 'Year End Summary 2024', date: 'Dec 28, 2024', size: '3.2 MB', type: 'PDF' },
                     ].map((report, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-glass-border hover:border-accent/50 transition-all">
+                        <div key={index} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-glass-border hover:border-accent/50 transition-all group">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-accent/10 border border-accent/20">
+                                <div className="p-2 rounded-lg bg-accent/10 border border-accent/20 group-hover:bg-accent/20 transition-colors">
                                     <FileText className="h-5 w-5 text-accent" />
                                 </div>
                                 <div>
                                     <p className="font-semibold text-foreground">{report.name}</p>
-                                    <p className="text-sm text-muted-foreground">{report.date} • {report.size}</p>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Calendar className="h-3 w-3" />
+                                        <span>{report.date}</span>
+                                        <span>•</span>
+                                        <span>{report.size}</span>
+                                        <span>•</span>
+                                        <span className="px-2 py-1 bg-accent/10 text-accent rounded text-xs font-medium">
+                                            {report.type}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                            <Button size="sm" variant="outline" className="border-glass-border gap-2">
+                            <Button size="sm" variant="outline" className="border-glass-border gap-2 hover:bg-accent hover:text-white hover:border-accent transition-all">
                                 <Download className="h-4 w-4" />
                                 Download
                             </Button>

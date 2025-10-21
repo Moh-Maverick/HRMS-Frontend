@@ -20,10 +20,16 @@ import {
     Clock,
     Play,
     Pause,
-    RotateCcw
+    RotateCcw,
+    ExternalLink,
+    UserCheck,
+    UserX,
+    Video
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { fsGetAllApplications, screenResume, fsUpdateScreeningResults } from '@/lib/firestoreApi'
+import { fsGetAllApplications, screenResume, fsUpdateScreeningResults, fsPushToInterview, fsMarkInterviewCreated, fsUpdateApplicationDecision } from '@/lib/firestoreApi'
+import { onSnapshot, query, collection, getDocs, where } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 
 interface ScreeningDetails {
     overall_assessment?: string
@@ -84,6 +90,12 @@ interface Application {
     keywordAnalysis?: any
     screeningCompleted?: boolean
     screeningDate?: string
+    interviewStatus?: 'none' | 'scheduled' | 'created' | 'completed'
+    interviewCreatedAt?: number
+    interviewBotUrl?: string
+    finalDecision?: 'pending' | 'accepted' | 'rejected'
+    decisionDate?: number
+    decisionNotes?: string
 }
 
 export default function HRCandidatesPage() {
@@ -96,6 +108,10 @@ export default function HRCandidatesPage() {
     const [showResumeModal, setShowResumeModal] = useState(false)
     const [showScreeningModal, setShowScreeningModal] = useState(false)
     const [showDetailedScreeningModal, setShowDetailedScreeningModal] = useState(false)
+    const [showInterviewModal, setShowInterviewModal] = useState(false)
+    const [showDecisionModal, setShowDecisionModal] = useState(false)
+    const [decisionType, setDecisionType] = useState<'accept' | 'reject' | null>(null)
+    const [decisionNotes, setDecisionNotes] = useState('')
     
     // Bulk screening state
     const [isBulkScreening, setIsBulkScreening] = useState(false)
@@ -107,19 +123,67 @@ export default function HRCandidatesPage() {
     const [sortBy, setSortBy] = useState<'default' | 'score-high' | 'score-low' | 'name' | 'date'>('default')
 
   useEffect(() => {
-        const fetchApplications = async () => {
-            try {
-                console.log('Fetching applications for candidates page...')
-                const applicationsData = await fsGetAllApplications()
-                console.log('Fetched applications:', applicationsData)
-                setApplications(applicationsData)
-      } catch (error) {
-                console.error('Error fetching applications:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-        fetchApplications()
+        // Subscribe to real-time updates for applications
+        const q = query(collection(db, 'applications'))
+        
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            const applications = snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+            
+            // Get job details for each application
+            const applicationsWithJobDetails = await Promise.all(
+                applications.map(async (app) => {
+                    try {
+                        // Try to get job details from jobs collection first
+                        const jobSnap = await getDocs(query(collection(db, 'jobs'), where('__name__', '==', app.jobId)))
+                        if (!jobSnap.empty) {
+                            const jobData = jobSnap.docs[0].data()
+                            return {
+                                ...app,
+                                jobTitle: jobData.title || jobData.role || 'Unknown Position',
+                                jobCompany: jobData.company || 'Unknown Company',
+                                jobLocation: jobData.location || 'Unknown Location',
+                                jobDepartment: jobData.department || 'Unknown Department'
+                            }
+                        }
+                        
+                        // Fallback to job_descriptions collection
+                        const jdSnap = await getDocs(query(collection(db, 'job_descriptions'), where('__name__', '==', app.jobId)))
+                        if (!jdSnap.empty) {
+                            const jdData = jdSnap.docs[0].data()
+                            return {
+                                ...app,
+                                jobTitle: jdData.role || jdData.title || 'Unknown Position',
+                                jobCompany: 'Our Company',
+                                jobLocation: jdData.location || 'Unknown Location',
+                                jobDepartment: jdData.department || 'Unknown Department'
+                            }
+                        }
+                        
+                        return {
+                            ...app,
+                            jobTitle: 'Unknown Position',
+                            jobCompany: 'Unknown Company',
+                            jobLocation: 'Unknown Location',
+                            jobDepartment: 'Unknown Department'
+                        }
+                    } catch (error) {
+                        console.error('Error fetching job details for application:', app.id, error)
+                        return {
+                            ...app,
+                            jobTitle: 'Unknown Position',
+                            jobCompany: 'Unknown Company',
+                            jobLocation: 'Unknown Location',
+                            jobDepartment: 'Unknown Department'
+                        }
+                    }
+                })
+            )
+            
+            setApplications(applicationsWithJobDetails)
+            setLoading(false)
+        })
+
+        return () => unsubscribe()
   }, [])
 
     const filteredApplications = applications.filter(app => {
@@ -299,6 +363,112 @@ HR Team`
         window.open(mailtoLink)
         
         console.log('Opening email client for:', application.email)
+    }
+
+    const handlePushToInterview = async (application: Application) => {
+        try {
+            const result = await fsPushToInterview(application.id, {
+                uid: application.uid,
+                name: application.candidateName,
+                jobId: application.jobId,
+                jobTitle: application.jobTitle
+            })
+
+            if (result.success) {
+                // Update local state
+                setApplications(prev => prev.map(app => 
+                    app.id === application.id 
+                        ? { ...app, interviewStatus: 'scheduled', interviewCreatedAt: Date.now() }
+                        : app
+                ))
+                
+                alert('Candidate pushed to interview successfully! Go to Interviews page to create the interview.')
+            } else {
+                alert('Failed to push candidate to interview: ' + result.error)
+            }
+        } catch (error) {
+            console.error('Error pushing to interview:', error)
+            alert('Failed to push candidate to interview. Please try again.')
+        }
+    }
+
+    const handleMarkInterviewCreated = async (application: Application) => {
+        const interviewBotUrl = prompt('Please enter the interview bot URL:')
+        if (!interviewBotUrl) return
+
+        try {
+            const result = await fsMarkInterviewCreated(application.id, interviewBotUrl)
+            
+            if (result.success) {
+                // Update local state
+                setApplications(prev => prev.map(app => 
+                    app.id === application.id 
+                        ? { ...app, interviewStatus: 'created', interviewBotUrl }
+                        : app
+                ))
+                
+                alert('Interview marked as created successfully!')
+            } else {
+                alert('Failed to mark interview as created: ' + result.error)
+            }
+        } catch (error) {
+            console.error('Error marking interview as created:', error)
+            alert('Failed to mark interview as created. Please try again.')
+        }
+    }
+
+    const handleViewInterviewResults = (application: Application) => {
+        if (application.interviewBotUrl) {
+            window.open(application.interviewBotUrl, '_blank')
+        } else {
+            alert('Interview bot URL not available')
+        }
+    }
+
+    const handleOpenDecisionModal = (application: Application, type: 'accept' | 'reject') => {
+        setSelectedApplication(application)
+        setDecisionType(type)
+        setDecisionNotes('')
+        setShowDecisionModal(true)
+    }
+
+    const handleSubmitDecision = async () => {
+        if (!selectedApplication || !decisionType) return
+
+        try {
+            const result = await fsUpdateApplicationDecision(
+                selectedApplication.id, 
+                decisionType === 'accept' ? 'accepted' : 'rejected',
+                decisionNotes || undefined
+            )
+
+            if (result.success) {
+                // Update local state
+                setApplications(prev => prev.map(app => 
+                    app.id === selectedApplication.id 
+                        ? { 
+                            ...app, 
+                            finalDecision: decisionType === 'accept' ? 'accepted' : 'rejected',
+                            decisionDate: Date.now(),
+                            decisionNotes: decisionNotes || undefined,
+                            status: decisionType === 'accept' ? 'accepted' : 'rejected'
+                        }
+                        : app
+                ))
+                
+                setShowDecisionModal(false)
+                setSelectedApplication(null)
+                setDecisionType(null)
+                setDecisionNotes('')
+                
+                alert(`Candidate ${decisionType === 'accept' ? 'accepted' : 'rejected'} successfully!`)
+            } else {
+                alert(`Failed to ${decisionType} candidate: ` + result.error)
+            }
+        } catch (error) {
+            console.error('Error updating decision:', error)
+            alert(`Failed to ${decisionType} candidate. Please try again.`)
+        }
     }
 
     const handleBulkScreening = async () => {
@@ -633,7 +803,7 @@ HR Team`
                   </div>
                 </div>
                                     
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                                         {application.resume && (
                                             <Button 
                                                 size="sm" 
@@ -668,11 +838,28 @@ HR Team`
                                                 <span className="ml-1 text-xs">✓</span>
                                             )}
                                         </Button>
+                                        
+                                        {/* Interview Action Buttons */}
+                                        {application.screeningCompleted && !application.interviewStatus && (
+                                            <Button 
+                                                size="sm"
+                                                variant="outline"
+                                                className="border-purple-500 text-purple-400 hover:bg-purple-500/20"
+                                                onClick={() => handlePushToInterview(application)}
+                                                title="Push candidate to interview"
+                                            >
+                                                <Video className="h-4 w-4 mr-1" />
+                                                <span className="hidden sm:inline">Push to Interview</span>
+                                                <span className="sm:hidden">Push</span>
+                                            </Button>
+                                        )}
+                                        
                                         <Button 
                                             size="sm"
                                             onClick={() => handleViewDetails(application)}
                                         >
-                                            View Details
+                                            <span className="hidden sm:inline">View Details</span>
+                                            <span className="sm:hidden">Details</span>
                                         </Button>
                 </div>
               </div>
@@ -1392,6 +1579,76 @@ HR Team`
                                 >
                                     <Eye className="h-4 w-4 mr-2" />
                                     View Resume
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Decision Modal */}
+            {showDecisionModal && selectedApplication && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-slate-900 border border-blue-400/20 rounded-lg w-full max-w-md">
+                        <div className="flex items-center justify-between p-4 border-b border-blue-400/20">
+                            <div>
+                                <h2 className="text-xl font-semibold text-slate-100">
+                                    {decisionType === 'accept' ? 'Accept' : 'Reject'} Candidate
+                                </h2>
+                                <p className="text-sm text-slate-400">
+                                    {selectedApplication.candidateName} • {selectedApplication.jobTitle}
+                                </p>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setShowDecisionModal(false)}
+                                className="text-slate-300 hover:text-white"
+                            >
+                                <XCircle className="h-5 w-5" />
+                            </Button>
+                        </div>
+                        <div className="p-4">
+                            <div className="space-y-4">
+                                <div className="bg-slate-800 border border-blue-400/20 rounded p-3">
+                                    <p className="text-slate-300">
+                                        Are you sure you want to <span className={`font-semibold ${decisionType === 'accept' ? 'text-green-400' : 'text-red-400'}`}>
+                                            {decisionType === 'accept' ? 'accept' : 'reject'}
+                                        </span> this candidate?
+                                    </p>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <label className="text-slate-300 text-sm font-medium">
+                                        Notes (Optional)
+                                    </label>
+                                    <textarea
+                                        value={decisionNotes}
+                                        onChange={(e) => setDecisionNotes(e.target.value)}
+                                        className="w-full p-3 bg-slate-800 border border-blue-400/20 rounded text-slate-100 placeholder-slate-400 focus:border-blue-400 focus:outline-none"
+                                        placeholder={`Add notes for ${decisionType === 'accept' ? 'acceptance' : 'rejection'}...`}
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="flex gap-2 justify-end mt-6">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setShowDecisionModal(false)}
+                                    className="border-glass-border"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleSubmitDecision}
+                                    className={`${
+                                        decisionType === 'accept' 
+                                            ? 'bg-green-500 hover:bg-green-600' 
+                                            : 'bg-red-500 hover:bg-red-600'
+                                    } text-white`}
+                                >
+                                    {decisionType === 'accept' ? 'Accept' : 'Reject'} Candidate
                                 </Button>
                             </div>
                         </div>

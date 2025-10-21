@@ -4,14 +4,27 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Users, Search, Plus, Edit, Trash2, UserCheck, Shield, Briefcase } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { fsGetUsers, fsCreateUser, fsUpdateUser, fsDeleteUser } from '@/lib/firestoreApi'
+import { fsGetUsers, fsCreateUserWithAuth, fsUpdateUser, fsDeleteUser } from '@/lib/firestoreApi'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([])
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [form, setForm] = useState<{ id?: string; name: string; email: string; role: string; department?: string }>({ name: '', email: '', role: 'employee' })
+  const [form, setForm] = useState<{ id?: string; name: string; email: string; role: string; department?: string; password?: string }>({ name: '', email: '', role: 'employee' })
+  const [showCredentials, setShowCredentials] = useState(false)
+  const [createdCredentials, setCreatedCredentials] = useState<{email: string, password: string} | null>(null)
+  const [autoGeneratePassword, setAutoGeneratePassword] = useState(false)
+
+  const generatePassword = () => {
+    const length = 12
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
+    let password = ""
+    for (let i = 0; i < length; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length))
+    }
+    return password
+  }
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -38,18 +51,32 @@ export default function AdminUsersPage() {
 
   const save = async () => {
     if (!form.name || !form.email) return
+    
+    // Generate password if auto-generate is enabled
+    const password = autoGeneratePassword ? generatePassword() : form.password
+    if (!password) {
+      alert('Please enter a password or enable auto-generation')
+      return
+    }
+    
     try {
       if (form.id) {
         const updated = await fsUpdateUser(form.id, form)
         setUsers((prev) => prev.map((u) => (u.id === form.id ? { ...u, ...updated } : u)))
       } else {
-        const created = await fsCreateUser(form)
+        const created = await fsCreateUserWithAuth({ ...form, password })
         setUsers((prev) => [...prev, created])
+        
+        // Show credentials popup
+        setCreatedCredentials({ email: form.email, password })
+        setShowCredentials(true)
       }
       setOpen(false)
       setForm({ name: '', email: '', role: 'employee' })
+      setAutoGeneratePassword(false)
     } catch (error) {
       console.error('Error saving user:', error)
+      alert('Error creating user: ' + (error as any)?.message || 'Unknown error')
     }
   }
 
@@ -270,6 +297,46 @@ export default function AdminUsersPage() {
                 />
               </div>
 
+              {!form.id && (
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Password</label>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="autoGenerate"
+                        checked={autoGeneratePassword}
+                        onChange={(e) => {
+                          setAutoGeneratePassword(e.target.checked)
+                          if (e.target.checked) {
+                            setForm((f) => ({ ...f, password: generatePassword() }))
+                          } else {
+                            setForm((f) => ({ ...f, password: '' }))
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <label htmlFor="autoGenerate" className="text-sm text-muted-foreground">
+                        Auto-generate secure password
+                      </label>
+                    </div>
+                    {!autoGeneratePassword && (
+                      <Input
+                        value={form.password || ''}
+                        onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                        placeholder="Enter password"
+                        type="password"
+                      />
+                    )}
+                    {autoGeneratePassword && (
+                      <div className="p-2 bg-muted/30 border border-glass-border rounded-lg">
+                        <p className="text-sm text-muted-foreground">Password will be auto-generated</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-end gap-3 pt-4">
                 <Button
                   variant="outline"
@@ -282,6 +349,36 @@ export default function AdminUsersPage() {
                   {form.id ? 'Update' : 'Create'} User
                 </Button>
               </div>
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* Credentials Display Modal */}
+      {showCredentials && createdCredentials && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <GlassCard className="w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-foreground">User Created Successfully</h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowCredentials(false)}
+              >
+                ×
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <div className="p-4 bg-muted/30 border border-glass-border rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Email</p>
+                <p className="font-mono text-foreground">{createdCredentials.email}</p>
+              </div>
+              <div className="p-4 bg-muted/30 border border-glass-border rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Password</p>
+                <p className="font-mono text-foreground">{createdCredentials.password}</p>
+              </div>
+              <p className="text-sm text-amber-500">⚠️ Save these credentials now. You won't see them again.</p>
+              <Button onClick={() => setShowCredentials(false)} className="w-full">Close</Button>
             </div>
           </GlassCard>
         </div>
