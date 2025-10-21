@@ -70,6 +70,15 @@ export function Navbar() {
                             {user ? (
                                 <>
                                     <span className="text-sm text-foreground/70 hidden sm:block">{role?.toUpperCase()}</span>
+                                    <Link href={`/dashboard/${role || 'employee'}`}>
+                                        <Button
+                                            variant="outline"
+                                            size="default"
+                                            className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+                                        >
+                                            Go to Dashboard
+                                        </Button>
+                                    </Link>
                                     <Button
                                         variant="ghost"
                                         size="default"
@@ -126,6 +135,15 @@ export function Navbar() {
                                 {user ? (
                                     <>
                                         <span className="text-sm text-foreground/70">{role?.toUpperCase()}</span>
+                                        <Link href={`/dashboard/${role || 'employee'}`} onClick={() => setIsMenuOpen(false)}>
+                                            <Button
+                                                variant="outline"
+                                                size="default"
+                                                className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+                                            >
+                                                Go to Dashboard
+                                            </Button>
+                                        </Link>
                                         <Button
                                             variant="ghost"
                                             size="default"

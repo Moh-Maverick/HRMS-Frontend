@@ -272,9 +272,33 @@ export default function HRCandidatesPage() {
     }
 
     const handleSendEmail = (application: Application) => {
-        // TODO: Implement email functionality
-        console.log('Sending email to:', application.email)
-        alert(`Email functionality will be implemented. Would send email to: ${application.email}`)
+        // Create email content with candidate details
+        const subject = `Application Update - ${application.jobTitle || 'Position'}`
+        const body = `Dear ${application.candidateName},
+
+Thank you for your interest in the ${application.jobTitle || 'position'} at our company.
+
+We have completed the initial review of your application and would like to inform you about the next steps in our hiring process.
+
+Application Details:
+- Position: ${application.jobTitle || 'N/A'}
+- Application Date: ${new Date(application.appliedAt).toLocaleDateString()}
+- Status: ${application.status || 'Under Review'}
+
+${application.aiScore ? `Your application scored ${application.aiScore}% in our initial screening.` : ''}
+
+We will be in touch soon with further updates.
+
+Best regards,
+HR Team`
+
+        // Create mailto link
+        const mailtoLink = `mailto:${application.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+        
+        // Open default email client
+        window.open(mailtoLink)
+        
+        console.log('Opening email client for:', application.email)
     }
 
     const handleBulkScreening = async () => {
@@ -305,7 +329,7 @@ export default function HRCandidatesPage() {
                 const application = unscreenedApplications[i]
                 
                 setBulkScreeningCurrent(`${application.candidateName} (${i + 1}/${unscreenedApplications.length})`)
-                setBulkScreeningProgress(((i + 1) / unscreenedApplications.length) * 100)
+                // Don't update progress yet - wait for completion
 
                 try {
                     console.log(`Screening ${i + 1}/${unscreenedApplications.length}: ${application.candidateName}`)
@@ -341,6 +365,9 @@ export default function HRCandidatesPage() {
                         ))
                         
                         console.log(`✓ Completed screening for ${application.candidateName}`)
+                        
+                        // Update progress after successful completion
+                        setBulkScreeningProgress(((i + 1) / unscreenedApplications.length) * 100)
                     } else {
                         console.error(`✗ Failed to screen ${application.candidateName}:`, result.error)
                     }
