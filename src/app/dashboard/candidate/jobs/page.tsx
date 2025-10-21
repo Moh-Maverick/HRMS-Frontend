@@ -200,12 +200,12 @@ export default function CandidateJobsPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
                     <p className="text-muted-foreground">Loading jobs...</p>
+                    </div>
                 </div>
-            </div>
         )
     }
 
@@ -377,8 +377,8 @@ export default function CandidateJobsPage() {
                                                 document.getElementById('resume-upload')?.click()
                                             }}
                                         >
-                                            Choose File
-                                        </Button>
+                                                Choose File
+                                            </Button>
                                     </div>
                                     {applicationData.resume && (
                                         <div className="bg-green-500/10 border border-green-500/20 rounded p-3">
@@ -439,82 +439,82 @@ export default function CandidateJobsPage() {
 
     return (
         <div className="space-y-6 max-w-7xl">
-            <div>
+                <div>
                 <h2 className="text-3xl font-bold text-foreground mb-2">Available Jobs</h2>
                 <p className="text-muted-foreground">Find and apply for jobs that match your skills</p>
-            </div>
-
-            {/* Search */}
-            <GlassCard delay={0.1}>
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search jobs by title, company, or location..."
-                            className="pl-10 bg-background border-glass-border"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <Button variant="outline" className="border-glass-border">Filter</Button>
                 </div>
-            </GlassCard>
 
-            {/* Jobs List */}
-            <div className="space-y-4">
-                {filteredJobs.map((job, index) => (
-                    <GlassCard key={index} delay={0.2 + index * 0.05}>
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-start gap-4">
+                {/* Search */}
+                <GlassCard delay={0.1}>
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search jobs by title, company, or location..."
+                            className="pl-10 bg-background border-glass-border"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    <Button variant="outline" className="border-glass-border">Filter</Button>
+                    </div>
+                </GlassCard>
+
+                {/* Jobs List */}
+                <div className="space-y-4">
+                    {filteredJobs.map((job, index) => (
+                        <GlassCard key={index} delay={0.2 + index * 0.05}>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-start gap-4">
                                 <div className="p-3 rounded-xl bg-accent/10 border border-accent/20">
                                     <Briefcase className="h-6 w-6 text-accent" />
-                                </div>
-                                <div className="flex-1">
+                                    </div>
+                                    <div className="flex-1">
                                     <h3 className="text-xl font-semibold text-foreground mb-1">{job.title}</h3>
                                     <p className="text-lg text-muted-foreground mb-2">{job.company}</p>
                                     <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mb-3">
-                                        <span className="flex items-center gap-1">
-                                            <MapPin className="h-4 w-4" />
-                                            {job.location}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Clock className="h-4 w-4" />
-                                            {job.type}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <DollarSign className="h-4 w-4" />
-                                            {job.salary}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Users className="h-4 w-4" />
-                                            {job.experience}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mb-2">{job.description}</p>
-                                    <div className="flex flex-wrap gap-2 mb-2">
-                                        {job.requirements?.map((req: string, idx: number) => (
-                                            <span key={idx} className="px-2 py-1 bg-muted/30 text-muted-foreground text-xs rounded">
-                                                {req}
+                                            <span className="flex items-center gap-1">
+                                                <MapPin className="h-4 w-4" />
+                                                {job.location}
                                             </span>
-                                        ))}
-                                    </div>
+                                            <span className="flex items-center gap-1">
+                                                <Clock className="h-4 w-4" />
+                                                {job.type}
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                <DollarSign className="h-4 w-4" />
+                                                {job.salary}
+                                            </span>
+                                            <span className="flex items-center gap-1">
+                                                <Users className="h-4 w-4" />
+                                                {job.experience}
+                                            </span>
+                                        </div>
+                                    <p className="text-sm text-muted-foreground mb-2">{job.description}</p>
+                                        <div className="flex flex-wrap gap-2 mb-2">
+                                            {job.requirements?.map((req: string, idx: number) => (
+                                            <span key={idx} className="px-2 py-1 bg-muted/30 text-muted-foreground text-xs rounded">
+                                                    {req}
+                                                </span>
+                                            ))}
+                                        </div>
                                     <p className="text-xs text-muted-foreground">Posted {job.postedDate} • {job.applicants} applicants</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <Button
+                                        onClick={() => handleApply(job)}
+                                    className="bg-accent hover:bg-accent/90"
+                                    >
+                                        Apply Now
+                                    </Button>
+                                <Button variant="outline" className="border-glass-border" onClick={() => handleViewJD(job)}>
+                                        View JD
+                                    </Button>
                                 </div>
                             </div>
-                            <div className="flex flex-col gap-2">
-                                <Button
-                                    onClick={() => handleApply(job)}
-                                    className="bg-accent hover:bg-accent/90"
-                                >
-                                    Apply Now
-                                </Button>
-                                <Button variant="outline" className="border-glass-border" onClick={() => handleViewJD(job)}>
-                                    View JD
-                                </Button>
-                            </div>
-                        </div>
-                    </GlassCard>
-                ))}
+                        </GlassCard>
+                    ))}
             </div>
 
             <JDModal

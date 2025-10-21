@@ -122,9 +122,9 @@ class GeminiResumeAnalyzer:
                     
                     if response and hasattr(response, 'text') and response.text:
                         analysis = self._parse_comprehensive_response(response.text)
-                        return {
-                            'success': True,
-                            'analysis': analysis,
+            return {
+                'success': True,
+                'analysis': analysis,
                             'error': None
                         }
                 except Exception as fallback_error:

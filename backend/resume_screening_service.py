@@ -54,6 +54,7 @@ class ResumeScreeningService:
         # Initialize Gemini analyzer with error handling
         try:
             api_key = os.getenv('GEMINI_API_KEY')
+            print(f"🔍 Environment check - GEMINI_API_KEY: {'***' + api_key[-4:] if api_key else 'NOT_FOUND'}")
             if api_key:
                 self.gemini_analyzer = GeminiResumeAnalyzer()
                 print("✓ Gemini analyzer initialized successfully")

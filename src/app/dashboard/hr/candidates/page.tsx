@@ -1155,8 +1155,8 @@ export default function HRCandidatesPage() {
                                                             <XCircle className="h-3 w-3 mr-1" />
                                                             {skill}
                                                         </span>
-                                                    ))}
-                                                </div>
+        ))}
+      </div>
                                             </div>
                                         )}
                                     </div>

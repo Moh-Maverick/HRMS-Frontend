@@ -1,6 +1,12 @@
 import { auth, db } from '@/lib/firebase'
 import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore'
 
+// Debug environment variables
+console.log('🔧 Environment check:', {
+    NEXT_PUBLIC_BACKEND_BASE: process.env.NEXT_PUBLIC_BACKEND_BASE,
+    NODE_ENV: process.env.NODE_ENV
+})
+
 async function recalcDeptCount(deptName: string) {
     if (!deptName) return
     const usersSnap = await getDocs(query(collection(db, 'users'), where('department', '==', deptName)))
@@ -418,6 +424,14 @@ export async function fsUpdateApplicationStatus(applicationId: string, status: s
 export async function screenResume(resumeBase64: string, resumeFileName: string, jobId: string, candidateName: string, enableAI: boolean = true) {
     try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_BASE || 'https://hrms-backend-lv6f.onrender.com'
+        console.log('🔍 Resume screening request:', {
+            backendUrl,
+            jobId,
+            candidateName,
+            enableAI,
+            resumeSize: resumeBase64.length
+        })
+        
         const response = await fetch(`${backendUrl}/resume/screen`, {
             method: 'POST',
             headers: {
