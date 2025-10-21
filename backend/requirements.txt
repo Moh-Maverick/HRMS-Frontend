@@ -14,5 +14,6 @@ pandas==2.1.4
 numpy==1.26.2
 google-genai==0.3.0
 
-# Note: After installation, run:
-# python -m spacy download en_core_web_sm
+# Use pre-built wheels to avoid compilation issues
+--find-links https://download.pytorch.org/whl/torch_stable.html
+--extra-index-url https://pypi.org/simple/
