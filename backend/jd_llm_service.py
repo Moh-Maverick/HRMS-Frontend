@@ -119,7 +119,7 @@ Create a job description with these sections only:
 - [Key benefits 1-3]
 
 **Important:** 
-- Use clean formatting with bullet points (-)
+- Use clean formatting with bullet points
 - Group related skills together (e.g., Python/JavaScript, React/Node.js, HTML/CSS)
 - Include ALL provided skills: {skills_str}
 - Keep each section concise
