@@ -1,15 +1,15 @@
 #!/bin/bash
 set -e
 
-echo "Installing system dependencies..."
-apt-get update
-apt-get install -y build-essential
+echo "🚀 Starting Render build process..."
 
-echo "Installing Python dependencies..."
-pip install --upgrade pip
-pip install -r requirements.txt
+echo "🔹 Upgrading pip, setuptools, and wheel..."
+pip install --upgrade pip setuptools wheel
 
-echo "Downloading spaCy model..."
+echo "🔹 Installing dependencies from requirements.txt..."
+pip install -r requirements.txt --no-cache-dir --no-build-isolation
+
+echo "🔹 Downloading spaCy model (en_core_web_sm)..."
 python -m spacy download en_core_web_sm
 
-echo "Build completed successfully!"
+echo "✅ Build completed successfully!"

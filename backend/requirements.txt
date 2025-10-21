@@ -5,15 +5,15 @@ python-dotenv==1.0.1
 firebase-admin==6.6.0
 reportlab==4.2.2
 
-# Resume Screening Dependencies
+# Resume Screening Dependencies (Compatible versions)
 pdfplumber==0.10.3
 PyPDF2==3.0.1
 spacy==3.7.2
 language-tool-python==2.8.1
-pandas==2.1.4
-numpy==1.26.2
+pandas==1.5.3
+numpy==1.24.3
 google-genai==0.3.0
 
-# Use pre-built wheels to avoid compilation issues
+# Use pre-built wheels
 --find-links https://download.pytorch.org/whl/torch_stable.html
 --extra-index-url https://pypi.org/simple/
