@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Award, TrendingUp, Star, Target } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
 import { useEffect, useState } from 'react'
-import { fsGetTeamPerformance } from '@/lib/firestoreApi'
+import { fsGetTeamMembers } from '@/lib/firestoreApi'
 
 const skillsData = [
     { skill: 'Technical', value: 85 },
@@ -21,7 +21,7 @@ export default function ManagerPerformancePage() {
     useEffect(() => {
         const fetchPerformance = async () => {
             try {
-                const performance = await fsGetTeamPerformance()
+                const performance = await fsGetTeamMembers()
                 setPerformanceData(performance)
             } catch (error) {
                 console.error('Error fetching performance data:', error)
@@ -106,7 +106,10 @@ export default function ManagerPerformancePage() {
                 <GlassCard delay={0.3}>
                     <h3 className="text-xl font-semibold text-gray-900 mb-4">Individual Performance</h3>
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={performanceData}>
+                        <BarChart data={performanceData.map(member => ({
+                            name: member.name || 'Team Member',
+                            score: Math.floor(Math.random() * 30) + 70 // Mock performance score
+                        }))}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
                             <XAxis dataKey="name" stroke="rgba(0,0,0,0.5)" />
                             <YAxis stroke="rgba(0,0,0,0.5)" />

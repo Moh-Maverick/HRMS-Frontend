@@ -64,7 +64,6 @@ const roleMenuItems = {
         { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard/candidate" },
         { icon: User, label: "Profile", path: "/dashboard/candidate/profile" },
         { icon: Briefcase, label: "Jobs", path: "/dashboard/candidate/jobs" },
-        { icon: Calendar, label: "Interviews", path: "/dashboard/candidate/interviews" },
         { icon: Video, label: "AI Interview", path: "/dashboard/candidate/interview" },
         { icon: CheckCircle, label: "Results", path: "/dashboard/candidate/result" },
     ],
