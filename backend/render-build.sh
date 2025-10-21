@@ -1,15 +1,16 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Starting Render build process..."
+echo "Installing Python dependencies..."
+pip install --upgrade pip
 
-echo "🔹 Upgrading pip, setuptools, and wheel..."
-pip install --upgrade pip setuptools wheel
+# Pre-install numpy before other deps
+pip install numpy==1.24.3
 
-echo "🔹 Installing dependencies from requirements.txt..."
-pip install -r requirements.txt --no-cache-dir --no-build-isolation
+# Now install the rest
+pip install -r requirements.txt --no-build-isolation --no-cache-dir
 
-echo "🔹 Downloading spaCy model (en_core_web_sm)..."
+echo "Downloading spaCy model..."
 python -m spacy download en_core_web_sm
 
 echo "✅ Build completed successfully!"
