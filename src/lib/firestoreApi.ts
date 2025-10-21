@@ -794,10 +794,18 @@ export async function fsUpdateApplicationDecision(applicationId: string, decisio
 
 // Get candidate applications with real-time listener
 export function fsSubscribeToCandidateApplications(uid: string, callback: (applications: any[]) => void) {
+    console.log('🔍 fsSubscribeToCandidateApplications called with uid:', uid)
     const q = query(collection(db, 'applications'), where('uid', '==', uid))
     
     return onSnapshot(q, async (snapshot) => {
+        console.log('📊 Firestore snapshot received:', {
+            size: snapshot.size,
+            empty: snapshot.empty,
+            docs: snapshot.docs.map(d => ({ id: d.id, data: d.data() }))
+        })
+        
         const applications = snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+        console.log('📋 Mapped applications:', applications)
         
         // Get job details for each application
         const applicationsWithJobDetails = await Promise.all(
@@ -849,6 +857,10 @@ export function fsSubscribeToCandidateApplications(uid: string, callback: (appli
             })
         )
         
+        console.log('🎯 Final applications with job details:', applicationsWithJobDetails)
         callback(applicationsWithJobDetails)
+    }, (error) => {
+        console.error('❌ Firestore subscription error:', error)
+        callback([])
     })
 }

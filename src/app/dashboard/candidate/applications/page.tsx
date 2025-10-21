@@ -5,28 +5,38 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Briefcase, Clock, Calendar, CheckCircle, XCircle, Eye, Brain, Video, ExternalLink } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useAuth } from '@/lib/auth'
 import { fsSubscribeToCandidateApplications } from '@/lib/firestoreApi'
-import { auth } from '@/lib/firebase'
 
 export default function CandidateApplicationsPage() {
+    const { user, loading: authLoading } = useAuth()
     const [applications, setApplications] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const user = auth.currentUser
+        console.log('🔐 Applications - Current user:', user)
+        console.log('⏳ Applications - Auth loading:', authLoading)
+        
+        if (authLoading) {
+            console.log('⏳ Applications - Still loading auth...')
+            return
+        }
+        
         if (!user) {
-            setLoading(false)
+            console.log('❌ Applications - No authenticated user found')
             return
         }
 
+        console.log('✅ Applications - Subscribing to applications for user:', user.uid)
+        console.log('📧 Applications - User email:', user.email)
+        
         // Subscribe to real-time updates
         const unsubscribe = fsSubscribeToCandidateApplications(user.uid, (apps) => {
+            console.log('📥 Applications - Received applications:', apps)
             setApplications(apps)
-            setLoading(false)
         })
 
         return () => unsubscribe()
-    }, [])
+    }, [user, authLoading])
 
     const getStatusBadge = (application: any) => {
         // Check final decision first
@@ -80,7 +90,7 @@ export default function CandidateApplicationsPage() {
         return <Clock className="h-4 w-4 text-gray-600" />
     }
 
-    if (loading) {
+    if (authLoading) {
         return (
             <DashboardLayout userRole="candidate" userName="Candidate Name">
                 <div className="flex items-center justify-center min-h-[400px]">
@@ -202,8 +212,14 @@ export default function CandidateApplicationsPage() {
                     <GlassCard delay={0.3}>
                         <div className="text-center py-8">
                             <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600 mb-2">No applications yet</p>
-                            <p className="text-sm text-gray-500">Start applying to jobs to see your applications here</p>
+                            <p className="text-gray-600 mb-2">No applications found</p>
+                            <p className="text-sm text-gray-500 mb-4">Start applying to jobs to see your applications here</p>
+                            <Button 
+                                onClick={() => window.location.href = '/dashboard/candidate/jobs'}
+                                className="bg-orange-500 hover:bg-orange-600"
+                            >
+                                Browse Jobs
+                            </Button>
                         </div>
                     </GlassCard>
                 )}

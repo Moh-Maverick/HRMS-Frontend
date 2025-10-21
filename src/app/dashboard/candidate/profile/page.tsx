@@ -281,7 +281,7 @@ export default function CandidateProfilePage() {
                 id="name"
                 value={formData.fullName || ''}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="bg-white border-gray-300"
+                className={`${isEditing ? 'bg-white text-gray-900 border-gray-300 focus:ring-orange-500' : 'bg-gray-50 text-gray-700 border-gray-200 cursor-not-allowed'}`}
                 disabled={!isEditing}
               />
             </div>
@@ -290,12 +290,12 @@ export default function CandidateProfilePage() {
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-800 font-medium">Email</Label>
               <div className="relative">
-                <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isEditing ? 'text-gray-400' : 'text-gray-300'}`} />
+                <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isEditing ? 'text-gray-500' : 'text-gray-400'}`} />
                 <Input
                   id="email"
                   value={formData.email || ''}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="pl-10 bg-white border-gray-300"
+                  className={`pl-10 ${isEditing ? 'bg-white text-gray-900 border-gray-300 focus:ring-orange-500' : 'bg-gray-50 text-gray-700 border-gray-200 cursor-not-allowed'}`}
                   disabled={!isEditing}
                 />
               </div>
@@ -305,12 +305,12 @@ export default function CandidateProfilePage() {
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-gray-800 font-medium">Phone</Label>
               <div className="relative">
-                <Phone className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isEditing ? 'text-gray-400' : 'text-gray-300'}`} />
+                <Phone className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isEditing ? 'text-gray-500' : 'text-gray-400'}`} />
                 <Input
                   id="phone"
                   value={formData.phone || ''}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="pl-10 bg-white border-gray-300"
+                  className={`pl-10 ${isEditing ? 'bg-white text-gray-900 border-gray-300 focus:ring-orange-500' : 'bg-gray-50 text-gray-700 border-gray-200 cursor-not-allowed'}`}
                   disabled={!isEditing}
                 />
               </div>
@@ -320,12 +320,12 @@ export default function CandidateProfilePage() {
             <div className="space-y-2">
               <Label htmlFor="location" className="text-gray-800 font-medium">Location</Label>
               <div className="relative">
-                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isEditing ? 'text-gray-400' : 'text-gray-300'}`} />
+                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isEditing ? 'text-gray-500' : 'text-gray-400'}`} />
                 <Input
                   id="location"
                   value={formData.location || ''}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="pl-10 bg-white border-gray-300"
+                  className={`pl-10 ${isEditing ? 'bg-white text-gray-900 border-gray-300 focus:ring-orange-500' : 'bg-gray-50 text-gray-700 border-gray-200 cursor-not-allowed'}`}
                   disabled={!isEditing}
                 />
               </div>
@@ -339,7 +339,7 @@ export default function CandidateProfilePage() {
               id="summary"
               value={formData.summary || ''}
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-              className="bg-white border-gray-300 min-h-[100px]"
+              className={`${isEditing ? 'bg-white text-gray-900 border-gray-300 focus:ring-orange-500' : 'bg-gray-50 text-gray-700 border-gray-200 cursor-not-allowed'} min-h-[100px]`}
               placeholder="Tell us about yourself, your skills, and career goals..."
               disabled={!isEditing}
             />
@@ -363,7 +363,7 @@ export default function CandidateProfilePage() {
               id="skills"
               value={formData.skills || ''}
               onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-              className="bg-white border-gray-300 min-h-[80px]"
+              className={`${isEditing ? 'bg-white text-gray-900 border-gray-300 focus:ring-orange-500' : 'bg-gray-50 text-gray-700 border-gray-200 cursor-not-allowed'} min-h-[80px]`}
               placeholder="List your technical skills, programming languages, tools, etc."
               disabled={!isEditing}
             />
@@ -375,7 +375,7 @@ export default function CandidateProfilePage() {
               id="experience"
               value={formData.experience || ''}
               onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-              className="bg-white border-gray-300 min-h-[120px]"
+              className={`${isEditing ? 'bg-white text-gray-900 border-gray-300 focus:ring-orange-500' : 'bg-gray-50 text-gray-700 border-gray-200 cursor-not-allowed'} min-h-[120px]`}
               placeholder="Describe your work experience, projects, and achievements..."
               disabled={!isEditing}
             />
