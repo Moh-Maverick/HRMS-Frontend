@@ -1,5 +1,4 @@
 "use client"
-import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { GlassCard } from '@/components/dashboard/GlassCard'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -92,48 +91,45 @@ export default function CandidateApplicationsPage() {
 
     if (authLoading) {
         return (
-            <DashboardLayout userRole="candidate" userName="Candidate Name">
-                <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Loading applications...</p>
-                    </div>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                    <p className="text-gray-300">Loading applications...</p>
                 </div>
-            </DashboardLayout>
+            </div>
         )
     }
 
     return (
-        <DashboardLayout userRole="candidate" userName="Candidate Name">
-            <div className="space-y-6 w-full">
+        <div className="space-y-6 w-full">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">My Applications</h2>
-                    <p className="text-gray-600">Track all your job applications and their status</p>
+                    <h2 className="text-3xl font-bold text-white mb-2">My Applications</h2>
+                    <p className="text-gray-300">Track all your job applications and their status</p>
                 </div>
 
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <GlassCard delay={0.1}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Total Applications</p>
+                        <p className="text-sm text-gray-300 mb-1">Total Applications</p>
                         <p className="text-3xl font-bold text-orange-500">{applications.length}</p>
                     </div>
                 </GlassCard>
                 <GlassCard delay={0.15}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Screened</p>
+                        <p className="text-sm text-gray-300 mb-1">Screened</p>
                         <p className="text-3xl font-bold text-blue-500">{applications.filter(a => a.screeningCompleted).length}</p>
                     </div>
                 </GlassCard>
                 <GlassCard delay={0.2}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Interviews</p>
+                        <p className="text-sm text-gray-300 mb-1">Interviews</p>
                         <p className="text-3xl font-bold text-purple-500">{applications.filter(a => a.interviewStatus).length}</p>
                     </div>
                 </GlassCard>
                 <GlassCard delay={0.25}>
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-1">Accepted</p>
+                        <p className="text-sm text-gray-300 mb-1">Accepted</p>
                         <p className="text-3xl font-bold text-green-500">{applications.filter(a => a.finalDecision === 'accepted').length}</p>
                     </div>
                 </GlassCard>
@@ -150,9 +146,9 @@ export default function CandidateApplicationsPage() {
                                         <Briefcase className="h-6 w-6 text-orange-500" />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-semibold text-gray-900">{app.jobTitle || 'Job Position'}</h3>
-                                        <p className="text-sm text-gray-600 mb-2">{app.jobCompany || 'Company Name'}</p>
-                                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                                        <h3 className="text-lg font-semibold text-white">{app.jobTitle || 'Job Position'}</h3>
+                                        <p className="text-sm text-gray-300 mb-2">{app.jobCompany || 'Company Name'}</p>
+                                        <div className="flex items-center gap-4 text-xs text-gray-400">
                                             <span className="flex items-center gap-1">
                                                 <Clock className="h-3 w-3" />
                                                 Applied on {formatDate(app.appliedAt)}
@@ -171,7 +167,7 @@ export default function CandidateApplicationsPage() {
                                             )}
                                         </div>
                                         {app.decisionNotes && (
-                                            <p className="text-sm text-gray-700 mt-2 bg-gray-50 p-2 rounded">
+                                            <p className="text-sm text-gray-300 mt-2 bg-gray-800/50 p-2 rounded">
                                                 {app.decisionNotes}
                                             </p>
                                         )}
@@ -212,8 +208,8 @@ export default function CandidateApplicationsPage() {
                     <GlassCard delay={0.3}>
                         <div className="text-center py-8">
                             <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600 mb-2">No applications found</p>
-                            <p className="text-sm text-gray-500 mb-4">Start applying to jobs to see your applications here</p>
+                            <p className="text-gray-300 mb-2">No applications found</p>
+                            <p className="text-sm text-gray-400 mb-4">Start applying to jobs to see your applications here</p>
                             <Button 
                                 onClick={() => window.location.href = '/dashboard/candidate/jobs'}
                                 className="bg-orange-500 hover:bg-orange-600"
@@ -228,25 +224,24 @@ export default function CandidateApplicationsPage() {
             {/* Application Timeline */}
             {applications.length > 0 && (
                 <GlassCard delay={0.4}>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Application Timeline</h3>
+                    <h3 className="text-xl font-semibold text-white mb-4">Application Timeline</h3>
                     <div className="space-y-3">
                         {applications.slice(0, 5).map((app, index) => (
-                            <div key={app.id || index} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200">
+                            <div key={app.id || index} className="flex items-center gap-3 p-3 rounded-xl bg-gray-800/30 border border-gray-700">
                                 <div className={`h-8 w-8 rounded-full flex items-center justify-center ${getStatusColor(app)}`}>
                                     {getStatusIcon(app)}
                                 </div>
                                 <div className="flex-1">
-                                    <p className="font-semibold text-gray-900">{app.jobTitle}</p>
-                                    <p className="text-sm text-gray-600">{app.jobCompany}</p>
+                                    <p className="font-semibold text-white">{app.jobTitle}</p>
+                                    <p className="text-sm text-gray-300">{app.jobCompany}</p>
                                 </div>
                                 {getStatusBadge(app)}
-                                <span className="text-xs text-gray-500">{formatDate(app.appliedAt)}</span>
+                                <span className="text-xs text-gray-400">{formatDate(app.appliedAt)}</span>
                             </div>
                         ))}
                     </div>
                 </GlassCard>
             )}
-            </div>
-        </DashboardLayout>
+        </div>
     )
 }

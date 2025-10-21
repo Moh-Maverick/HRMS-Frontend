@@ -35,7 +35,7 @@ export const Api = {
         { id: 'u2', name: 'Bob Singh', email: 'bob@fwc.co.in', role: 'manager', department: 'Sales' },
         { id: 'u3', name: 'Carol HR', email: 'carol@fwc.co.in', role: 'hr', department: 'HR' },
     ],
-    createUser: async (payload: { name: string; email: string; role: string; department?: string }) => isFs() ? fsCreateUserWithAuth(payload) : ({ id: crypto.randomUUID(), ...payload }),
+    createUser: async (payload: { name: string; email: string; password: string; role: string; department?: string }) => isFs() ? fsCreateUserWithAuth(payload) : ({ id: crypto.randomUUID(), ...payload }),
     updateUser: async (id: string, payload: Partial<{ name: string; email: string; role: string; department?: string }>) => isFs() ? fsUpdateUser(id, payload) : ({ id, ...payload }),
     deleteUser: async (id: string) => isFs() ? fsDeleteUser(id) : ({ success: true }),
     getDepartments: async () => isFs() ? fsGetDepartments() : (
