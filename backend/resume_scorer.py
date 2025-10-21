@@ -36,6 +36,15 @@ class ResumeScorer:
         """
         candidate_level = education_data.get('education_level', 0)
         
+        # Ensure candidate_level is an integer
+        if isinstance(candidate_level, str):
+            try:
+                candidate_level = int(candidate_level)
+            except (ValueError, TypeError):
+                candidate_level = 0
+        elif not isinstance(candidate_level, int):
+            candidate_level = 0
+        
         # Base score from education level
         base_score = self.education_weights.get(candidate_level, 0)
         
@@ -79,6 +88,15 @@ class ResumeScorer:
             domain: Required domain/industry for relevance check
         """
         total_years = experience_data.get('total_years', 0)
+        
+        # Ensure total_years is a number
+        if isinstance(total_years, str):
+            try:
+                total_years = float(total_years)
+            except (ValueError, TypeError):
+                total_years = 0
+        elif not isinstance(total_years, (int, float)):
+            total_years = 0
         has_titles = len(experience_data.get('job_titles', [])) > 0
         has_companies = len(experience_data.get('companies', [])) > 0
         

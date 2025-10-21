@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 import os
+import json
 from typing import Any, Dict, Optional
 
 import firebase_admin
 from firebase_admin import credentials, storage, firestore
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 
 class FirebaseClient:
@@ -13,18 +18,77 @@ class FirebaseClient:
         self.bucket_name = bucket_name or os.getenv("FIREBASE_STORAGE_BUCKET")
         self._init(service_account_path)
 
+    def _init_from_env(self) -> bool:
+        """Initialize Firebase using environment variables"""
+        try:
+            # Check if all required environment variables are present
+            required_vars = [
+                'FIREBASE_PROJECT_ID',
+                'FIREBASE_PRIVATE_KEY',
+                'FIREBASE_CLIENT_EMAIL'
+            ]
+            
+            for var in required_vars:
+                if not os.getenv(var):
+                    print(f"Missing environment variable: {var}")
+                    return False
+            
+            # Create credentials from environment variables
+            cred_dict = {
+                "type": "service_account",
+                "project_id": os.getenv('FIREBASE_PROJECT_ID'),
+                "private_key_id": os.getenv('FIREBASE_PRIVATE_KEY_ID'),
+                "private_key": os.getenv('FIREBASE_PRIVATE_KEY').replace('\\n', '\n'),
+                "client_email": os.getenv('FIREBASE_CLIENT_EMAIL'),
+                "client_id": os.getenv('FIREBASE_CLIENT_ID'),
+                "auth_uri": os.getenv('FIREBASE_AUTH_URI', 'https://accounts.google.com/o/oauth2/auth'),
+                "token_uri": os.getenv('FIREBASE_TOKEN_URI', 'https://oauth2.googleapis.com/token'),
+                "auth_provider_x509_cert_url": os.getenv('FIREBASE_AUTH_PROVIDER_X509_CERT_URL', 'https://www.googleapis.com/oauth2/v1/certs'),
+                "client_x509_cert_url": os.getenv('FIREBASE_CLIENT_X509_CERT_URL'),
+                "universe_domain": os.getenv('FIREBASE_UNIVERSE_DOMAIN', 'googleapis.com')
+            }
+            
+            # Create credentials object
+            cred = credentials.Certificate(cred_dict)
+            
+            # Initialize Firebase with options
+            options = {"storageBucket": self.bucket_name} if self.bucket_name else None
+            firebase_admin.initialize_app(cred, options)
+            
+            print("✅ Firebase initialized from environment variables")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Failed to initialize Firebase from environment variables: {e}")
+            return False
+
     def _init(self, service_account_path: Optional[str]) -> None:
         if firebase_admin._apps:
             self._initialized = True
             return
+        
+        # Try to use environment variables first (for hosting)
+        if self._init_from_env():
+            self._initialized = True
+            return
+            
+        # Fallback to service account file (for local development)
+        if service_account_path and os.path.exists(service_account_path):
+            cred = credentials.Certificate(service_account_path)
+            firebase_admin.initialize_app(cred)
+            self._initialized = True
+            return
+            
         # Default to backend/service-account.json
         default_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "service-account.json")
         cred_path = service_account_path or os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or default_path
         cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred)
+        self._initialized = True
+        
         # If bucket not provided, attempt to derive from service account project_id
         if not self.bucket_name:
             try:
-                import json
                 with open(cred_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     project_id = data.get("project_id")
@@ -32,9 +96,6 @@ class FirebaseClient:
                         self.bucket_name = f"{project_id}.appspot.com"
             except Exception:
                 pass
-        options = {"storageBucket": self.bucket_name} if self.bucket_name else None
-        firebase_admin.initialize_app(cred, options)
-        self._initialized = True
 
     @property
     def bucket(self):

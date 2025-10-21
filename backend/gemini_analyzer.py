@@ -7,7 +7,7 @@ import os
 import json
 from typing import Dict, List, Optional, Any
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
 
 # Load environment variables
 load_dotenv()
@@ -34,21 +34,13 @@ class GeminiResumeAnalyzer:
         if not self.api_key:
             raise ValueError("Gemini API key not found. Set GEMINI_API_KEY environment variable or pass api_key parameter.")
         
-        # Configure Gemini
-        genai.configure(api_key=self.api_key)
+        # Initialize client with new API format
+        self.client = genai.Client()
         
-        # Initialize model
-        self.model_name = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+        # Model configuration
+        self.model_name = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
         self.temperature = float(os.getenv('GEMINI_TEMPERATURE', '0.7'))
         self.max_tokens = int(os.getenv('GEMINI_MAX_TOKENS', '2048'))
-        
-        self.model = genai.GenerativeModel(
-            model_name=self.model_name,
-            generation_config={
-                'temperature': self.temperature,
-                'max_output_tokens': self.max_tokens,
-            }
-        )
         
         print(f"✓ Gemini AI initialized: {self.model_name}")
     
@@ -67,27 +59,103 @@ class GeminiResumeAnalyzer:
     
     def analyze_resume_quality(self, resume_data: Dict, job_config: Dict) -> Dict[str, Any]:
         """
-        Comprehensive LLM-powered resume analysis
+        AI-powered resume analysis using Gemini to compare resume against job description
         
         Args:
             resume_data: Parsed resume data
             job_config: Job requirements and configuration
             
         Returns:
-            Dictionary with AI insights
+            Dictionary with AI insights and scores
         """
-        prompt = self._build_analysis_prompt(resume_data, job_config)
-        
         try:
-            response = self.model.generate_content(prompt)
-            analysis = self._parse_analysis_response(response.text)
+            # Build comprehensive prompt for Gemini analysis
+            prompt = self._build_comprehensive_analysis_prompt(resume_data, job_config)
             
-            return {
-                'success': True,
-                'analysis': analysis,
-                'raw_response': response.text
+            try:
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt
+                )
+                
+                # Check if response is valid
+                if not response:
+                    raise Exception("No response from Gemini API")
+                
+                # Check for safety blocks or content policy violations
+                if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+                    if hasattr(response.prompt_feedback, 'block_reason'):
+                        raise Exception(f"Content blocked: {response.prompt_feedback.block_reason}")
+                
+                # Check for finish reason issues
+                if hasattr(response, 'candidates') and response.candidates:
+                    candidate = response.candidates[0]
+                    if hasattr(candidate, 'finish_reason'):
+                        if candidate.finish_reason == 2:  # SAFETY
+                            raise Exception("Response blocked due to safety concerns")
+                        elif candidate.finish_reason == 3:  # RECITATION
+                            raise Exception("Response blocked due to recitation concerns")
+                        elif candidate.finish_reason == 4:  # OTHER
+                            raise Exception("Response blocked for other reasons")
+                
+                # Check if response has text
+                if not hasattr(response, 'text') or not response.text:
+                    raise Exception("No text content in response")
+                
+                # Parse the structured response from Gemini
+                analysis = self._parse_comprehensive_response(response.text)
+                
+                return {
+                    'success': True,
+                    'analysis': analysis,
+                    'error': None
+                }
+            except Exception as api_error:
+                print(f"Gemini API call failed: {api_error}")
+                # Try with a simpler prompt as fallback
+                try:
+                    simple_prompt = self._build_simple_analysis_prompt(resume_data, job_config)
+                    response = self.client.models.generate_content(
+                        model=self.model_name,
+                        contents=simple_prompt
+                    )
+                    
+                    if response and hasattr(response, 'text') and response.text:
+                        analysis = self._parse_comprehensive_response(response.text)
+                        return {
+                            'success': True,
+                            'analysis': analysis,
+                            'error': None
+                        }
+                except Exception as fallback_error:
+                    print(f"Fallback prompt also failed: {fallback_error}")
+                
+                return {
+                    'success': False,
+                    'error': f"API error: {str(api_error)}",
+                    'analysis': {
+                        'overall_assessment': 'AI analysis temporarily unavailable',
+                        'strengths': [],
+                        'weaknesses': [],
+                        'recommendation': 'Manual review recommended',
+                        'component_scores': {
+                            'education': 50,
+                            'experience': 50,
+                            'domain': 50,
+                            'language': 50,
+                            'skill_match': 50
+                        },
+                        'skill_analysis': {
+                            'matched_required': [],
+                            'missing_required': [],
+                            'matched_optional': [],
+                            'all_candidate_skills': []
+                        },
+                        'overall_score': 50
+                    }
             }
         except Exception as e:
+            print(f"Error during AI analysis: {e}")
             return {
                 'success': False,
                 'error': str(e),
@@ -95,9 +163,142 @@ class GeminiResumeAnalyzer:
                     'overall_assessment': 'Error analyzing resume',
                     'strengths': [],
                     'weaknesses': [],
-                    'recommendation': 'Manual review required'
+                    'recommendation': 'Manual review required',
+                    'component_scores': {
+                        'education': 0,
+                        'experience': 0,
+                        'domain': 0,
+                        'language': 0,
+                        'skill_match': 0
+                    },
+                    'skill_analysis': {
+                        'matched_required': [],
+                        'missing_required': [],
+                        'matched_optional': [],
+                        'all_candidate_skills': []
+                    },
+                    'overall_score': 0
                 }
             }
+    
+    def _build_comprehensive_analysis_prompt(self, resume_data: Dict, job_config: Dict) -> str:
+        """Build comprehensive analysis prompt for Gemini to score resume against job description"""
+        
+        # Extract candidate information
+        candidate_name = resume_data.get('name', 'Candidate')
+        candidate_email = resume_data.get('email', '')
+        candidate_phone = resume_data.get('phone', '')
+        
+        # Extract education
+        education_info = resume_data.get('education', {})
+        if isinstance(education_info, dict):
+            degree = education_info.get('degree', '')
+            institution = education_info.get('institution', '')
+            year = education_info.get('year', '')
+        else:
+            degree = str(education_info)
+            institution = ''
+            year = ''
+        
+        # Extract experience
+        experience_info = resume_data.get('experience', {})
+        if isinstance(experience_info, dict):
+            total_years = experience_info.get('total_years', 0)
+            experiences = experience_info.get('experiences', [])
+        else:
+            total_years = 0
+            experiences = []
+        
+        # Extract skills
+        skills_info = resume_data.get('skills', {})
+        if isinstance(skills_info, dict):
+            candidate_skills = skills_info.get('skills', [])
+        elif isinstance(skills_info, list):
+            candidate_skills = skills_info
+        else:
+            candidate_skills = []
+        
+        # Extract job information
+        job_title = job_config.get('job_title', 'Position')
+        job_description = job_config.get('job_description', '')
+        required_skills = job_config.get('required_skills', [])
+        optional_skills = job_config.get('optional_skills', [])
+        required_experience = job_config.get('required_experience_years', 0)
+        required_education = job_config.get('required_education_level', 'Bachelor')
+        
+        prompt = f"""
+Analyze this candidate for the {job_title} position.
+
+CANDIDATE:
+- Education: {degree} from {institution}
+- Experience: {total_years} years
+- Skills: {', '.join(candidate_skills[:10]) if candidate_skills else 'None listed'}
+
+JOB REQUIREMENTS:
+- Required Skills: {', '.join(required_skills[:5]) if required_skills else 'None'}
+- Required Experience: {required_experience} years
+- Required Education: {required_education}
+
+Provide scores (0-100) and analysis in this JSON format:
+{{
+    "component_scores": {{
+        "education": 85,
+        "experience": 70,
+        "domain": 90,
+        "language": 80,
+        "skill_match": 75
+    }},
+    "skill_analysis": {{
+        "matched_required": ["Python", "JavaScript"],
+        "missing_required": ["React", "Node.js"],
+        "matched_optional": ["AWS"],
+        "all_candidate_skills": ["Python", "JavaScript", "SQL", "Git"]
+    }},
+    "overall_score": 80,
+    "overall_assessment": "Strong technical background",
+    "strengths": ["Good programming skills", "Relevant experience"],
+    "weaknesses": ["Missing some frameworks"],
+    "recommendation": "Recommended"
+}}
+"""
+        return prompt
+
+    def _build_simple_analysis_prompt(self, resume_data: Dict, job_config: Dict) -> str:
+        """Build a simpler prompt to avoid safety blocks"""
+        job_title = job_config.get('job_title', 'Position')
+        required_skills = job_config.get('required_skills', [])
+        
+        # Extract basic info
+        candidate_skills = []
+        if isinstance(resume_data.get('skills'), dict):
+            candidate_skills = resume_data['skills'].get('skills', [])
+        elif isinstance(resume_data.get('skills'), list):
+            candidate_skills = resume_data['skills']
+        
+        education_info = resume_data.get('education', {})
+        if isinstance(education_info, dict):
+            degree = education_info.get('degree', '')
+        else:
+            degree = str(education_info)
+        
+        experience_info = resume_data.get('experience', {})
+        if isinstance(experience_info, dict):
+            total_years = experience_info.get('total_years', 0)
+        else:
+            total_years = 0
+        
+        prompt = f"""
+Rate this candidate for {job_title}:
+
+Skills: {', '.join(candidate_skills[:5]) if candidate_skills else 'None'}
+Education: {degree}
+Experience: {total_years} years
+Required: {', '.join(required_skills[:3]) if required_skills else 'None'}
+
+Return JSON:
+{{"education": 80, "experience": 70, "domain": 85, "language": 75, "skill_match": 60, "overall_score": 74, "recommendation": "Recommended"}}
+"""
+        return prompt
     
     def _build_analysis_prompt(self, resume_data: Dict, job_config: Dict) -> str:
         """Build comprehensive analysis prompt for Gemini"""
@@ -236,6 +437,145 @@ Analyze deeply, be specific, and provide actionable insights. Focus on fit for t
                 'raw_text': response_text
             }
     
+    def _parse_comprehensive_response(self, response_text: str) -> Dict[str, Any]:
+        """Parse Gemini's comprehensive analysis response"""
+        try:
+            import json
+            import re
+            
+            # Try to extract JSON from the response
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if json_match:
+                json_str = json_match.group()
+                parsed_data = json.loads(json_str)
+                
+                # Handle both comprehensive and simple response formats
+                if 'component_scores' in parsed_data:
+                    # Comprehensive format
+                    return {
+                        'overall_assessment': parsed_data.get('overall_assessment', 'Analysis completed'),
+                        'strengths': parsed_data.get('strengths', []),
+                        'weaknesses': parsed_data.get('weaknesses', []),
+                        'recommendation': parsed_data.get('recommendation', 'Manual review recommended'),
+                        'component_scores': parsed_data.get('component_scores', {
+                            'education': 50,
+                            'experience': 50,
+                            'domain': 50,
+                            'language': 50,
+                            'skill_match': 50
+                        }),
+                        'skill_analysis': parsed_data.get('skill_analysis', {
+                            'matched_required': [],
+                            'missing_required': [],
+                            'matched_optional': [],
+                            'all_candidate_skills': []
+                        }),
+                        'overall_score': parsed_data.get('overall_score', 50)
+                    }
+                else:
+                    # Simple format - convert to comprehensive format
+                    return {
+                        'overall_assessment': f"Candidate analysis completed with {parsed_data.get('overall_score', 50)}% overall score",
+                        'strengths': [],
+                        'weaknesses': [],
+                        'recommendation': parsed_data.get('recommendation', 'Manual review recommended'),
+                        'component_scores': {
+                            'education': parsed_data.get('education', 50),
+                            'experience': parsed_data.get('experience', 50),
+                            'domain': parsed_data.get('domain', 50),
+                            'language': parsed_data.get('language', 50),
+                            'skill_match': parsed_data.get('skill_match', 50)
+                        },
+                        'skill_analysis': {
+                            'matched_required': [],
+                            'missing_required': [],
+                            'matched_optional': [],
+                            'all_candidate_skills': []
+                        },
+                        'overall_score': parsed_data.get('overall_score', 50)
+                    }
+            else:
+                # Fallback parsing if JSON not found
+                return self._fallback_parse_response(response_text)
+                
+        except Exception as e:
+            print(f"Error parsing comprehensive response: {e}")
+            return self._fallback_parse_response(response_text)
+    
+    def _fallback_parse_response(self, response_text: str) -> Dict[str, Any]:
+        """Fallback parsing when JSON parsing fails"""
+        try:
+            # Extract scores using regex
+            education_score = self._extract_score(response_text, 'education', 50)
+            experience_score = self._extract_score(response_text, 'experience', 50)
+            domain_score = self._extract_score(response_text, 'domain', 50)
+            language_score = self._extract_score(response_text, 'language', 50)
+            skill_score = self._extract_score(response_text, 'skill', 50)
+            overall_score = self._extract_score(response_text, 'overall', 50)
+            
+            return {
+                'overall_assessment': 'AI analysis completed with fallback parsing',
+                'strengths': [],
+                'weaknesses': [],
+                'recommendation': 'Manual review recommended',
+                'component_scores': {
+                    'education': education_score,
+                    'experience': experience_score,
+                    'domain': domain_score,
+                    'language': language_score,
+                    'skill_match': skill_score
+                },
+                'skill_analysis': {
+                    'matched_required': [],
+                    'missing_required': [],
+                    'matched_optional': [],
+                    'all_candidate_skills': []
+                },
+                'overall_score': overall_score
+            }
+        except Exception as e:
+            print(f"Fallback parsing failed: {e}")
+            return {
+                'overall_assessment': 'Error parsing AI response',
+                'strengths': [],
+                'weaknesses': [],
+                'recommendation': 'Manual review required',
+                'component_scores': {
+                    'education': 0,
+                    'experience': 0,
+                    'domain': 0,
+                    'language': 0,
+                    'skill_match': 0
+                },
+                'skill_analysis': {
+                    'matched_required': [],
+                    'missing_required': [],
+                    'matched_optional': [],
+                    'all_candidate_skills': []
+                },
+                'overall_score': 0
+            }
+    
+    def _extract_score(self, text: str, keyword: str, default: int) -> int:
+        """Extract score for a specific component"""
+        import re
+        patterns = [
+            rf'{keyword}[^0-9]*(\d+)',
+            rf'{keyword}[^0-9]*(\d+\.\d+)',
+            rf'(\d+)[^0-9]*{keyword}',
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, text.lower())
+            if match:
+                try:
+                    score = float(match.group(1))
+                    return min(100, max(0, int(score)))
+                except:
+                    continue
+        
+        return default
+    
     def compare_candidates(self, candidates: List[Dict], job_config: Dict, top_n: int = 3) -> Dict[str, Any]:
         """
         LLM-powered comparative analysis of multiple candidates
@@ -257,7 +597,10 @@ Analyze deeply, be specific, and provide actionable insights. Focus on fit for t
         prompt = self._build_comparison_prompt(top_candidates, job_config)
         
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             
             return {
                 'success': True,
@@ -325,7 +668,10 @@ Be specific and actionable in your analysis."""
         prompt = self._build_interview_questions_prompt(resume_data, job_config, focus_areas)
         
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             questions = self._parse_interview_questions(response.text)
             
             return {
@@ -480,7 +826,10 @@ Create a development roadmap with:
 Be specific and actionable. Focus on practical learning."""
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             
             return {
                 'success': True,
@@ -534,7 +883,10 @@ Provide:
 Be thoughtful and nuanced in your assessment."""
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             
             return {
                 'success': True,

@@ -6,6 +6,10 @@ import os
 import httpx
 from typing import Dict, List, Any, Optional
 import re
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 
 class JDLLMService:
@@ -80,64 +84,47 @@ class JDLLMService:
         skills_str = ", ".join(skills) if skills else "Relevant technical skills"
         responsibilities_str = "\n".join([f"- {resp}" for resp in responsibilities]) if responsibilities else ""
         
-        prompt = f"""You are an expert HR professional and technical recruiter with 10+ years of experience. Generate a professional, detailed, and engaging job description for the following role using Gemini AI.
+        prompt = f"""Generate a clean, professional job description for this position. Keep it concise and well-structured.
 
-**Position Details:**
-- Job Title: {role}
-- Department: {department}
-- Experience Required: {experience}
-- Location: {location}
-- Employment Type: {employment_type}
-- Company: {company}
+**Position:** {role}
+**Department:** {department}
+**Experience:** {experience}
+**Location:** {location}
+**Type:** {employment_type}
 
-**MANDATORY SKILLS TO INCLUDE (ALL OF THESE MUST BE LISTED):**
-{skills_str}
+**Required Skills:** {skills_str}
 
-{f"**SPECIFIC RESPONSIBILITIES PROVIDED:**\n{responsibilities_str}" if responsibilities_str else ""}
+{f"**Responsibilities:**\n{responsibilities_str}" if responsibilities_str else ""}
 
-{f"**ADDITIONAL NOTES:**\n{additional_notes}" if additional_notes else ""}
+{f"**Notes:** {additional_notes}" if additional_notes else ""}
 
-**CRITICAL REQUIREMENTS FOR GEMINI:**
-1. You MUST include ALL the provided skills in the Required Skills section
-2. Create a professional, industry-standard job description
-3. Use specific, technical language appropriate for the role
-4. Make it competitive and attractive to top talent
-5. Include modern technologies and methodologies
-6. Structure the response exactly as requested below
+Create a job description with these sections only:
 
-**Instructions:**
-Create a comprehensive job description with the following sections. Provide the response in EXACTLY this format:
+**Job Summary:**
+[2-3 sentences about the role and impact]
 
-JOB SUMMARY:
-[Write 2-3 engaging sentences about the role, company impact, and growth opportunities]
+**Key Responsibilities:**
+- [Responsibility 1]
+- [Responsibility 2]
+- [Responsibility 3]
+- [Responsibility 4]
 
-RESPONSIBILITIES:
-- [Specific responsibility 1]
-- [Specific responsibility 2]
-- [Specific responsibility 3]
-- [Specific responsibility 4]
-- [Specific responsibility 5]
-- [Specific responsibility 6]
+**Required Skills:**
+- [Group related skills together like: Python/JavaScript, React/Node.js, HTML/CSS, Git/GitHub, SQL/MongoDB, Docker/AWS]
 
-REQUIRED SKILLS:
-- [MUST include ALL provided skills: {skills_str}]
-- [Add 2-3 complementary technical skills]
-- [Add 2-3 soft skills]
+**Qualifications:**
+- [Education/experience requirements]
 
-QUALIFICATIONS:
-- [Educational requirement]
-- [Experience requirement: {experience}]
-- [Technical certification if relevant]
-- [Additional qualification]
+**Benefits:**
+- [Key benefits 1-3]
 
-BENEFITS:
-- [Competitive benefit 1]
-- [Competitive benefit 2]
-- [Competitive benefit 3]
-- [Competitive benefit 4]
-- [Competitive benefit 5]
-
-**IMPORTANT:** Ensure ALL provided skills ({skills_str}) are explicitly listed in the Required Skills section. Do not omit any of them."""
+**Important:** 
+- Use clean formatting with bullet points (-)
+- Group related skills together (e.g., Python/JavaScript, React/Node.js, HTML/CSS)
+- Include ALL provided skills: {skills_str}
+- Keep each section concise
+- No repetition or extra formatting
+- Professional tone"""
         return prompt
     
     async def _generate_gemini_jd(self, prompt: str) -> str:
@@ -149,7 +136,7 @@ BENEFITS:
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {
                     "temperature": 0.7,
-                    "maxOutputTokens": 3000,  # Increased for longer, detailed JDs
+                    "maxOutputTokens": 1500,  # Reduced for cleaner, concise JDs
                     "topP": 0.95,
                     "topK": 40,
                     "candidateCount": 1
@@ -216,8 +203,48 @@ BENEFITS:
 - Implement best practices and design patterns
 - Stay updated with latest industry trends and technologies"""
         
-        # Create individual skill entries
-        skills_list = "\n".join([f"- {skill}" for skill in skills]) if skills else "- Relevant technical skills"
+        # Create grouped skill entries
+        def group_skills(skills_list):
+            """Group related skills together"""
+            if not skills_list:
+                return "- Relevant technical skills"
+            
+            # Define skill groups
+            groups = {
+                'programming': ['Python', 'JavaScript', 'Java', 'C++', 'C#', 'Go', 'Rust', 'TypeScript'],
+                'frontend': ['React', 'Vue', 'Angular', 'HTML', 'CSS', 'Bootstrap', 'jQuery', 'SASS', 'LESS'],
+                'backend': ['Node.js', 'Express', 'Django', 'Flask', 'Spring', 'FastAPI', 'Laravel'],
+                'database': ['SQL', 'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'SQLite', 'Oracle'],
+                'cloud': ['AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Terraform'],
+                'tools': ['Git', 'GitHub', 'GitLab', 'Jenkins', 'Jira', 'Confluence'],
+                'mobile': ['React Native', 'Flutter', 'iOS', 'Android', 'Swift', 'Kotlin'],
+                'testing': ['Jest', 'Cypress', 'Selenium', 'JUnit', 'Pytest', 'Mocha']
+            }
+            
+            grouped = []
+            remaining_skills = skills_list.copy()
+            
+            # Group skills by category
+            for category, category_skills in groups.items():
+                found_skills = []
+                for skill in remaining_skills[:]:
+                    if any(cat_skill.lower() in skill.lower() for cat_skill in category_skills):
+                        found_skills.append(skill)
+                        remaining_skills.remove(skill)
+                
+                if found_skills:
+                    if len(found_skills) == 1:
+                        grouped.append(f"- {found_skills[0]}")
+                    else:
+                        grouped.append(f"- {'/'.join(found_skills)}")
+            
+            # Add remaining skills individually
+            for skill in remaining_skills:
+                grouped.append(f"- {skill}")
+            
+            return "\n".join(grouped)
+        
+        skills_list = group_skills(skills)
         
         return f"""JOB SUMMARY:
 We are seeking a skilled {role} to join our dynamic team in {location}. The ideal candidate will have {experience} of experience and strong expertise in {skills_str}. This role offers excellent opportunities for professional growth and the chance to work on cutting-edge projects.
@@ -249,7 +276,7 @@ BENEFITS:
 - Career growth and advancement opportunities"""
     
     def _parse_ai_response(self, raw_text: str) -> Dict[str, Any]:
-        """Parse AI response into structured sections"""
+        """Parse AI response into structured sections with cleaner formatting"""
         sections = {
             "summary": "",
             "responsibilities": [],
@@ -259,88 +286,113 @@ BENEFITS:
         }
         
         try:
-            # Clean up the text
+            # Clean up the text - remove extra formatting
             text = raw_text.strip()
+            text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)  # Remove **bold** formatting
+            text = re.sub(r'\n\s*\n\s*\n', '\n\n', text)  # Remove excessive line breaks
             
-            # Extract summary - more flexible pattern
+            # Extract summary - look for Job Summary section
             summary_patterns = [
+                r'Job Summary:\s*(.*?)(?=\n[A-Z][a-z\s]+:|\n\n[A-Z]|\Z)',
                 r'JOB SUMMARY:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'SUMMARY:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'OVERVIEW:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)'
+                r'SUMMARY:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)'
             ]
             
             for pattern in summary_patterns:
                 summary_match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
                 if summary_match:
-                    sections["summary"] = summary_match.group(1).strip()
+                    summary_text = summary_match.group(1).strip()
+                    # Clean up summary - remove bullet points and extra formatting
+                    summary_text = re.sub(r'^[-•*]\s*', '', summary_text, flags=re.MULTILINE)
+                    sections["summary"] = summary_text
                     break
             
-            # Extract responsibilities - more flexible patterns
+            # Extract responsibilities - look for Key Responsibilities section
             resp_patterns = [
+                r'Key Responsibilities:\s*(.*?)(?=\n[A-Z][a-z\s]+:|\n\n[A-Z]|\Z)',
                 r'RESPONSIBILITIES:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'KEY RESPONSIBILITIES:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'DUTIES:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)'
+                r'KEY RESPONSIBILITIES:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)'
             ]
             
             for pattern in resp_patterns:
                 resp_match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
                 if resp_match:
                     responsibilities_text = resp_match.group(1).strip()
-                    sections["responsibilities"] = [line.strip('- •*').strip() for line in responsibilities_text.split('\n') if line.strip() and not line.strip().startswith(('JOB', 'REQUIRED', 'QUALIFICATIONS', 'BENEFITS'))]
+                    # Clean up responsibilities - extract bullet points
+                    responsibilities = []
+                    for line in responsibilities_text.split('\n'):
+                        line = line.strip()
+                        if line.startswith('-') or line.startswith('•') or line.startswith('*'):
+                            clean_line = re.sub(r'^[-•*]\s*', '', line).strip()
+                            if clean_line and not clean_line.startswith(('Required', 'Qualifications', 'Benefits')):
+                                responsibilities.append(clean_line)
+                    sections["responsibilities"] = responsibilities
                     break
             
-            # Extract required skills - more flexible patterns
+            # Extract required skills - look for Required Skills section
             skills_patterns = [
+                r'Required Skills:\s*(.*?)(?=\n[A-Z][a-z\s]+:|\n\n[A-Z]|\Z)',
                 r'REQUIRED SKILLS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'KEY SKILLS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'TECHNICAL SKILLS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'SKILLS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)'
+                r'KEY SKILLS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)'
             ]
             
             for pattern in skills_patterns:
                 skills_match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
                 if skills_match:
                     skills_text = skills_match.group(1).strip()
-                    skills_list = []
+                    # Clean up skills - extract bullet points
+                    skills = []
                     for line in skills_text.split('\n'):
-                        line = line.strip('- •*').strip()
-                        if line and not line.startswith(('QUALIFICATIONS', 'BENEFITS', 'RESPONSIBILITIES')):
-                            # Handle comma-separated skills in a single line
-                            if ',' in line and not any(word in line.lower() for word in ['communication', 'problem', 'team', 'attention', 'agile']):
-                                # Split comma-separated skills
-                                individual_skills = [skill.strip() for skill in line.split(',')]
-                                skills_list.extend(individual_skills)
-                            else:
-                                skills_list.append(line)
-                    sections["required_skills"] = skills_list
+                        line = line.strip()
+                        if line.startswith('-') or line.startswith('•') or line.startswith('*'):
+                            clean_line = re.sub(r'^[-•*]\s*', '', line).strip()
+                            if clean_line and not clean_line.startswith(('Qualifications', 'Benefits', 'Responsibilities')):
+                                skills.append(clean_line)
+                    sections["required_skills"] = skills
                     break
             
-            # Extract qualifications
+            # Extract qualifications - look for Qualifications section
             qual_patterns = [
+                r'Qualifications:\s*(.*?)(?=\n[A-Z][a-z\s]+:|\n\n[A-Z]|\Z)',
                 r'QUALIFICATIONS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'REQUIREMENTS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'EDUCATION:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)'
+                r'REQUIREMENTS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)'
             ]
             
             for pattern in qual_patterns:
                 qual_match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
                 if qual_match:
                     qual_text = qual_match.group(1).strip()
-                    sections["qualifications"] = [line.strip('- •*').strip() for line in qual_text.split('\n') if line.strip() and not line.strip().startswith(('BENEFITS', 'RESPONSIBILITIES', 'SKILLS'))]
+                    # Clean up qualifications - extract bullet points
+                    qualifications = []
+                    for line in qual_text.split('\n'):
+                        line = line.strip()
+                        if line.startswith('-') or line.startswith('•') or line.startswith('*'):
+                            clean_line = re.sub(r'^[-•*]\s*', '', line).strip()
+                            if clean_line and not clean_line.startswith(('Benefits', 'Responsibilities', 'Skills')):
+                                qualifications.append(clean_line)
+                    sections["qualifications"] = qualifications
                     break
             
-            # Extract benefits
+            # Extract benefits - look for Benefits section
             benefits_patterns = [
+                r'Benefits:\s*(.*?)(?=\n[A-Z][a-z\s]+:|\n\n[A-Z]|\Z)',
                 r'BENEFITS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'BENEFITS & PERKS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)',
-                r'COMPENSATION:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)'
+                r'BENEFITS & PERKS:\s*(.*?)(?=\n[A-Z][A-Z\s]+:|\n\n[A-Z]|\Z)'
             ]
             
             for pattern in benefits_patterns:
                 benefits_match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
                 if benefits_match:
                     benefits_text = benefits_match.group(1).strip()
-                    sections["benefits"] = [line.strip('- •*').strip() for line in benefits_text.split('\n') if line.strip()]
+                    # Clean up benefits - extract bullet points
+                    benefits = []
+                    for line in benefits_text.split('\n'):
+                        line = line.strip()
+                        if line.startswith('-') or line.startswith('•') or line.startswith('*'):
+                            clean_line = re.sub(r'^[-•*]\s*', '', line).strip()
+                            if clean_line:
+                                benefits.append(clean_line)
+                    sections["benefits"] = benefits
                     break
                 
         except Exception as e:

@@ -12,7 +12,7 @@ spacy==3.7.2
 language-tool-python==2.8.1
 pandas==2.1.4
 numpy==1.26.2
-google-generativeai==0.8.5
+google-genai==0.3.0
 
 # Note: After installation, run:
 # python -m spacy download en_core_web_sm

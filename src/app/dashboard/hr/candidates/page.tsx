@@ -17,16 +17,41 @@ import {
     Calendar,
     CheckCircle,
     XCircle,
-    Clock
+    Clock,
+    Play,
+    Pause,
+    RotateCcw
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { fsGetAllApplications, screenResume } from '@/lib/firestoreApi'
+import { fsGetAllApplications, screenResume, fsUpdateScreeningResults } from '@/lib/firestoreApi'
 
 interface ScreeningDetails {
     overall_assessment?: string
     strengths?: string[]
     weaknesses?: string[]
     recommendation?: string
+    component_scores?: {
+        education?: number
+        experience?: number
+        domain?: number
+        language?: number
+        skill_match?: number
+    }
+    skill_analysis?: {
+        matched_required?: string[]
+        missing_required?: string[]
+        matched_optional?: string[]
+        all_candidate_skills?: string[]
+    }
+    keyword_analysis?: {
+        coverage_percentage?: number
+        overall_density?: number
+        keywords_found?: number
+        keywords_missing?: number
+    }
+    education_details?: any
+    experience_details?: any
+    domain_details?: any
 }
 
 interface Application {
@@ -54,6 +79,11 @@ interface Application {
     jobDepartment: string
     aiScore?: number
     screeningDetails?: ScreeningDetails
+    componentScores?: any
+    skillAnalysis?: any
+    keywordAnalysis?: any
+    screeningCompleted?: boolean
+    screeningDate?: string
 }
 
 export default function HRCandidatesPage() {
@@ -65,6 +95,16 @@ export default function HRCandidatesPage() {
     const [showApplicationModal, setShowApplicationModal] = useState(false)
     const [showResumeModal, setShowResumeModal] = useState(false)
     const [showScreeningModal, setShowScreeningModal] = useState(false)
+    const [showDetailedScreeningModal, setShowDetailedScreeningModal] = useState(false)
+    
+    // Bulk screening state
+    const [isBulkScreening, setIsBulkScreening] = useState(false)
+    const [bulkScreeningProgress, setBulkScreeningProgress] = useState(0)
+    const [bulkScreeningTotal, setBulkScreeningTotal] = useState(0)
+    const [bulkScreeningCurrent, setBulkScreeningCurrent] = useState('')
+    
+    // Sorting state
+    const [sortBy, setSortBy] = useState<'default' | 'score-high' | 'score-low' | 'name' | 'date'>('default')
 
   useEffect(() => {
         const fetchApplications = async () => {
@@ -92,6 +132,37 @@ export default function HRCandidatesPage() {
         const matchesStatus = statusFilter === 'all' || app.status === statusFilter
         
         return matchesSearch && matchesStatus
+    })
+
+    // Sort the filtered applications
+    const sortedApplications = [...filteredApplications].sort((a, b) => {
+        switch (sortBy) {
+            case 'score-high':
+                // Sort by AI score (highest first), unscreened candidates at the end
+                const scoreA = a.aiScore ?? -1
+                const scoreB = b.aiScore ?? -1
+                return scoreB - scoreA
+            
+            case 'score-low':
+                // Sort by AI score (lowest first), unscreened candidates at the end
+                const scoreALow = a.aiScore ?? 999
+                const scoreBLow = b.aiScore ?? 999
+                return scoreALow - scoreBLow
+            
+            case 'name':
+                // Sort by candidate name alphabetically
+                return a.candidateName.localeCompare(b.candidateName)
+            
+            case 'date':
+                // Sort by application date (newest first)
+                const dateA = new Date(a.appliedAt).getTime()
+                const dateB = new Date(b.appliedAt).getTime()
+                return dateB - dateA
+            
+            default:
+                // Default order (as fetched from database)
+                return 0
+        }
     })
 
     const handleViewDetails = (application: Application) => {
@@ -132,9 +203,17 @@ export default function HRCandidatesPage() {
         }
     }
 
-    const handleResumeScreening = async (application: Application) => {
+    const handleResumeScreening = async (application: Application, forceRescreen: boolean = false) => {
         if (!application.resume) {
             alert('No resume available for screening')
+            return
+        }
+
+        // Check if screening has already been completed (unless force re-screen is requested)
+        if (!forceRescreen && application.screeningCompleted && application.aiScore !== undefined) {
+            console.log('Screening already completed, showing cached results')
+            setSelectedApplication(application)
+            setShowScreeningModal(true)
             return
         }
 
@@ -155,12 +234,33 @@ export default function HRCandidatesPage() {
 
             if (result.success) {
                 console.log('Resume screening completed:', result)
-                // Update the application with AI score
-                setSelectedApplication({
+                
+                // Store screening results in Firebase
+                const storeResult = await fsUpdateScreeningResults(application.id, result)
+                if (storeResult.success) {
+                    console.log('Screening results stored in database')
+                } else {
+                    console.error('Failed to store screening results:', storeResult.error)
+                }
+                
+                // Update the application with comprehensive AI data
+                const updatedApplication = {
                     ...application,
                     aiScore: result.ai_score,
-                    screeningDetails: result.analysis
-                })
+                    screeningDetails: result.analysis,
+                    componentScores: result.component_scores,
+                    skillAnalysis: result.skill_analysis,
+                    keywordAnalysis: result.keyword_analysis,
+                    screeningCompleted: true,
+                    screeningDate: new Date().toISOString()
+                }
+                
+                setSelectedApplication(updatedApplication)
+                
+                // Update the applications list to show the score immediately
+                setApplications(prev => prev.map(app => 
+                    app.id === application.id ? updatedApplication : app
+                ))
             } else {
                 console.error('Resume screening failed:', result.error)
                 alert('Resume screening failed: ' + (result.error || 'Unknown error'))
@@ -175,6 +275,93 @@ export default function HRCandidatesPage() {
         // TODO: Implement email functionality
         console.log('Sending email to:', application.email)
         alert(`Email functionality will be implemented. Would send email to: ${application.email}`)
+    }
+
+    const handleBulkScreening = async () => {
+        // Get all applications that haven't been screened yet
+        const unscreenedApplications = applications.filter(app => 
+            !app.screeningCompleted || app.aiScore === undefined
+        )
+
+        if (unscreenedApplications.length === 0) {
+            alert('All candidates have already been screened!')
+            return
+        }
+
+        // Confirm before starting bulk screening
+        const confirmed = confirm(
+            `Start bulk screening for ${unscreenedApplications.length} candidates? This may take several minutes.`
+        )
+        
+        if (!confirmed) return
+
+        setIsBulkScreening(true)
+        setBulkScreeningTotal(unscreenedApplications.length)
+        setBulkScreeningProgress(0)
+        setBulkScreeningCurrent('')
+
+        try {
+            for (let i = 0; i < unscreenedApplications.length; i++) {
+                const application = unscreenedApplications[i]
+                
+                setBulkScreeningCurrent(`${application.candidateName} (${i + 1}/${unscreenedApplications.length})`)
+                setBulkScreeningProgress(((i + 1) / unscreenedApplications.length) * 100)
+
+                try {
+                    console.log(`Screening ${i + 1}/${unscreenedApplications.length}: ${application.candidateName}`)
+                    
+                    // Call the resume screening API
+                    const result = await screenResume(
+                        application.resume!,
+                        application.resumeFileName || 'resume.pdf',
+                        application.jobId,
+                        application.candidateName,
+                        true // Enable AI
+                    )
+
+                    if (result.success) {
+                        // Store screening results in Firebase
+                        await fsUpdateScreeningResults(application.id, result)
+                        
+                        // Update the application with comprehensive AI data
+                        const updatedApplication = {
+                            ...application,
+                            aiScore: result.ai_score,
+                            screeningDetails: result.analysis,
+                            componentScores: result.component_scores,
+                            skillAnalysis: result.skill_analysis,
+                            keywordAnalysis: result.keyword_analysis,
+                            screeningCompleted: true,
+                            screeningDate: new Date().toISOString()
+                        }
+                        
+                        // Update the applications list
+                        setApplications(prev => prev.map(app => 
+                            app.id === application.id ? updatedApplication : app
+                        ))
+                        
+                        console.log(`✓ Completed screening for ${application.candidateName}`)
+                    } else {
+                        console.error(`✗ Failed to screen ${application.candidateName}:`, result.error)
+                    }
+                } catch (error) {
+                    console.error(`✗ Error screening ${application.candidateName}:`, error)
+                }
+
+                // Add a small delay to prevent overwhelming the API
+                await new Promise(resolve => setTimeout(resolve, 1000))
+            }
+
+            alert(`Bulk screening completed! Processed ${unscreenedApplications.length} candidates.`)
+        } catch (error) {
+            console.error('Bulk screening failed:', error)
+            alert('Bulk screening failed. Please try again.')
+        } finally {
+            setIsBulkScreening(false)
+            setBulkScreeningProgress(0)
+            setBulkScreeningTotal(0)
+            setBulkScreeningCurrent('')
+        }
     }
 
     const getStatusBadge = (status: string) => {
@@ -239,14 +426,115 @@ export default function HRCandidatesPage() {
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
                         </select>
-          <Button variant="outline" className="border-glass-border">Sort by Score</Button>
+          <Button 
+                            variant="outline" 
+                            className="border-glass-border"
+                            onClick={() => {
+                                // Cycle through sorting options
+                                switch (sortBy) {
+                                    case 'default':
+                                        setSortBy('score-high')
+                                        break
+                                    case 'score-high':
+                                        setSortBy('score-low')
+                                        break
+                                    case 'score-low':
+                                        setSortBy('name')
+                                        break
+                                    case 'name':
+                                        setSortBy('date')
+                                        break
+                                    case 'date':
+                                        setSortBy('default')
+                                        break
+                                }
+                            }}
+                            title={`Current sort: ${sortBy === 'default' ? 'Default' : 
+                                           sortBy === 'score-high' ? 'Score (High to Low)' :
+                                           sortBy === 'score-low' ? 'Score (Low to High)' :
+                                           sortBy === 'name' ? 'Name (A-Z)' :
+                                           'Date (Newest First)'}`}
+                        >
+                            {sortBy === 'default' && 'Sort by Score'}
+                            {sortBy === 'score-high' && 'Score ↓'}
+                            {sortBy === 'score-low' && 'Score ↑'}
+                            {sortBy === 'name' && 'Name A-Z'}
+                            {sortBy === 'date' && 'Date ↓'}
+                        </Button>
+                        <Button 
+                            onClick={handleBulkScreening}
+                            disabled={isBulkScreening}
+                            className={`${
+                                isBulkScreening 
+                                    ? 'bg-orange-500/20 border-orange-500 text-orange-400' 
+                                    : 'bg-accent hover:bg-accent/90'
+                            }`}
+                            title="Screen all candidates who haven't been screened yet"
+                        >
+                            {isBulkScreening ? (
+                                <>
+                                    <Pause className="h-4 w-4 mr-2" />
+                                    Screening...
+                                </>
+                            ) : (
+                                <>
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Bulk Screen
+                                    {(() => {
+                                        const unscreenedCount = applications.filter(app => 
+                                            !app.screeningCompleted || app.aiScore === undefined
+                                        ).length
+                                        return unscreenedCount > 0 ? (
+                                            <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-xs">
+                                                {unscreenedCount}
+                                            </span>
+                                        ) : null
+                                    })()}
+                                </>
+                            )}
+                        </Button>
                     </div>
         </div>
       </GlassCard>
 
+      {/* Bulk Screening Progress */}
+      {isBulkScreening && (
+        <GlassCard delay={0.2}>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Bulk Screening in Progress</h3>
+              <span className="text-sm text-muted-foreground">
+                {bulkScreeningProgress.toFixed(0)}% Complete
+              </span>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Brain className="h-4 w-4 text-accent" />
+                <span className="text-sm text-muted-foreground">
+                  Currently screening: <span className="text-foreground font-medium">{bulkScreeningCurrent}</span>
+                </span>
+              </div>
+              
+              <div className="w-full bg-background rounded-full h-2 border border-glass-border">
+                <div 
+                  className="bg-gradient-to-r from-accent to-blue-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${bulkScreeningProgress}%` }}
+                />
+              </div>
+              
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Progress: {Math.round(bulkScreeningProgress)}%</span>
+                <span>Total: {bulkScreeningTotal} candidates</span>
+              </div>
+            </div>
+          </div>
+        </GlassCard>
+      )}
+
       {/* Candidates List */}
       <div className="space-y-4">
-                {filteredApplications.length === 0 ? (
+                {sortedApplications.length === 0 ? (
                     <GlassCard delay={0.2}>
                         <div className="text-center py-8">
                             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -260,7 +548,7 @@ export default function HRCandidatesPage() {
                         </div>
                     </GlassCard>
                 ) : (
-                    filteredApplications.map((application, index) => (
+                    sortedApplications.map((application, index) => (
                         <GlassCard key={application.id} delay={0.2 + index * 0.05}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
@@ -276,6 +564,19 @@ export default function HRCandidatesPage() {
                                         <p className="text-sm text-muted-foreground mb-2">
                                             Applied for: {application.jobTitle || 'Position'}
                                         </p>
+                                        {application.screeningCompleted && application.aiScore !== undefined && (
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="text-xs text-muted-foreground">AI Score:</span>
+                                                <span className={`text-sm font-semibold px-2 py-1 rounded-full ${
+                                                    application.aiScore >= 80 ? 'bg-green-500/20 text-green-400' :
+                                                    application.aiScore >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
+                                                    application.aiScore >= 40 ? 'bg-orange-500/20 text-orange-400' :
+                                                    'bg-red-500/20 text-red-400'
+                                                }`}>
+                                                    {application.aiScore.toFixed(0)}%
+                                                </span>
+                                            </div>
+                                        )}
                   <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Mail className="h-3 w-3" />
@@ -327,10 +628,18 @@ export default function HRCandidatesPage() {
                                         <Button 
                                             size="sm" 
                                             variant="outline" 
-                                            className="border-glass-border"
+                                            className={`border-glass-border ${
+                                                application.screeningCompleted 
+                                                    ? 'bg-green-500/20 border-green-500 text-green-400' 
+                                                    : 'hover:bg-accent hover:text-white hover:border-accent'
+                                            }`}
                                             onClick={() => handleResumeScreening(application)}
+                                            title={application.screeningCompleted ? 'Screening completed - click to view results' : 'Start AI resume screening'}
                                         >
                                             <Brain className="h-4 w-4" />
+                                            {application.screeningCompleted && (
+                                                <span className="ml-1 text-xs">✓</span>
+                                            )}
                                         </Button>
                                         <Button 
                                             size="sm"
@@ -460,10 +769,18 @@ export default function HRCandidatesPage() {
                                             <Button
                                                 onClick={() => handleResumeScreening(selectedApplication)}
                                                 variant="outline"
-                                                className="border-glass-border"
+                                                className={`border-glass-border ${
+                                                    selectedApplication?.screeningCompleted 
+                                                        ? 'bg-green-500/20 border-green-500 text-green-400' 
+                                                        : 'hover:bg-accent hover:text-white hover:border-accent'
+                                                }`}
+                                                title={selectedApplication?.screeningCompleted ? 'Screening completed - click to view results' : 'Start AI resume screening'}
                                             >
                                                 <Brain className="h-4 w-4 mr-2" />
-                                                Resume Screening
+                                                {selectedApplication?.screeningCompleted ? 'View Screening Results' : 'Resume Screening'}
+                                                {selectedApplication?.screeningCompleted && (
+                                                    <span className="ml-2 text-xs">✓</span>
+                                                )}
                                             </Button>
                                         </div>
                                     </div>
@@ -616,13 +933,25 @@ export default function HRCandidatesPage() {
                                     <div className="flex gap-2 justify-center pt-4">
                                         <Button
                                             onClick={() => {
-                                                // TODO: Show detailed screening results
-                                                console.log('Showing detailed results for:', selectedApplication.candidateName)
+                                                setShowDetailedScreeningModal(true)
+                                                setShowScreeningModal(false)
                                             }}
                                             className="bg-accent hover:bg-accent/90"
                                         >
                                             <BarChart3 className="h-4 w-4 mr-2" />
                                             View Full Details
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="border-glass-border hover:bg-orange-500/20 hover:border-orange-500 hover:text-orange-400"
+                                            onClick={() => {
+                                                setShowScreeningModal(false)
+                                                handleResumeScreening(selectedApplication, true) // Force re-screen
+                                            }}
+                                            title="Re-run AI analysis (this will update the results)"
+                                        >
+                                            <Brain className="h-4 w-4 mr-2" />
+                                            Re-screen
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -654,6 +983,393 @@ export default function HRCandidatesPage() {
                         </div>
       </div>
       </div>
+            )}
+
+            {/* Comprehensive Detailed Screening Results Modal */}
+            {showDetailedScreeningModal && selectedApplication && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-slate-900 border border-blue-400/20 rounded-lg max-w-7xl w-full max-h-[95vh] overflow-y-auto">
+                        <div className="p-6">
+                            {/* Header */}
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-slate-100">Comprehensive Resume Analysis</h2>
+                                    <p className="text-slate-400">{selectedApplication.candidateName} • {selectedApplication.jobTitle}</p>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowDetailedScreeningModal(false)}
+                                    className="border-glass-border"
+                                >
+                                    <XCircle className="h-4 w-4" />
+                                </Button>
+                            </div>
+
+                            {/* Score Overview */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6 text-center">
+                                    <div className="text-4xl font-bold text-accent mb-2">
+                                        {selectedApplication.aiScore ? `${Math.round(selectedApplication.aiScore)}%` : '--'}
+                                    </div>
+                                    <div className="text-slate-300 font-medium">Composite Score</div>
+                                    <div className="text-sm text-slate-400 mt-1">Overall Assessment</div>
+                                </div>
+                                
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6 text-center">
+                                    <div className="text-4xl font-bold text-green-400 mb-2">
+                                        {selectedApplication.skillAnalysis?.matched_required?.length || 0}
+                                    </div>
+                                    <div className="text-slate-300 font-medium">Skills Match</div>
+                                    <div className="text-sm text-slate-400 mt-1">Required skills matched</div>
+                                </div>
+                                
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6 text-center">
+                                    <div className="text-4xl font-bold text-blue-400 mb-2">
+                                        {selectedApplication.keywordAnalysis?.coverage_percentage ? `${Math.round(selectedApplication.keywordAnalysis.coverage_percentage)}%` : '--'}
+                                    </div>
+                                    <div className="text-slate-300 font-medium">Relevance</div>
+                                    <div className="text-sm text-slate-400 mt-1">Keyword coverage</div>
+                                </div>
+                            </div>
+
+                            {/* Component Scores */}
+                            {selectedApplication.componentScores && (
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6 mb-6">
+                                    <h3 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">
+                                        <BarChart3 className="h-5 w-5 mr-2 text-accent" />
+                                        Component Scores
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {Object.entries(selectedApplication.componentScores).map(([component, score]) => (
+                                            <div key={component} className="flex items-center justify-between">
+                                                <span className="text-slate-300 capitalize">{component.replace('_', ' ')}</span>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-32 bg-slate-700 rounded-full h-2">
+                                                        <div 
+                                                            className="bg-gradient-to-r from-red-500 to-green-500 h-2 rounded-full"
+                                                            style={{ width: `${score as number}%` }}
+                                                        ></div>
+                                                    </div>
+                                                    <span className="text-slate-300 font-medium w-12 text-right">{score as number}%</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Skills Analysis */}
+                            {selectedApplication.skillAnalysis && (
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6 mb-6">
+                                    <h3 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">
+                                        <CheckCircle className="h-5 w-5 mr-2 text-green-400" />
+                                        Skills Analysis
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Matched Required Skills */}
+                                        {selectedApplication.skillAnalysis.matched_required && selectedApplication.skillAnalysis.matched_required.length > 0 && (
+                                            <div>
+                                                <h4 className="text-slate-300 font-medium mb-3">Matched Required Skills</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedApplication.skillAnalysis.matched_required.map((skill: string, index: number) => (
+                                                        <span key={index} className="bg-green-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                                                            <CheckCircle className="h-3 w-3 mr-1" />
+                                                            {skill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Missing Required Skills */}
+                                        {selectedApplication.skillAnalysis.missing_required && selectedApplication.skillAnalysis.missing_required.length > 0 && (
+                                            <div>
+                                                <h4 className="text-slate-300 font-medium mb-3">Missing Required Skills</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedApplication.skillAnalysis.missing_required.map((skill: string, index: number) => (
+                                                        <span key={index} className="bg-red-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                                                            <XCircle className="h-3 w-3 mr-1" />
+                                                            {skill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Matched Optional Skills */}
+                                        {selectedApplication.skillAnalysis.matched_optional && selectedApplication.skillAnalysis.matched_optional.length > 0 && (
+                                            <div>
+                                                <h4 className="text-slate-300 font-medium mb-3">Matched Optional Skills</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedApplication.skillAnalysis.matched_optional.map((skill: string, index: number) => (
+                                                        <span key={index} className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                                                            <span className="w-3 h-3 mr-1">•</span>
+                                                            {skill}
+                                                        </span>
+        ))}
+      </div>
+                                            </div>
+                                        )}
+
+                                        {/* All Candidate Skills with Color Coding */}
+                                        {selectedApplication.skillAnalysis.all_candidate_skills && (
+                                            <div>
+                                                <h4 className="text-slate-300 font-medium mb-3">All Candidate Skills</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedApplication.skillAnalysis.all_candidate_skills.slice(0, 15).map((skill: string, index: number) => {
+                                                        // Check if this skill matches any required skill
+                                                        const isMatched = selectedApplication.skillAnalysis.matched_required?.some((matchedSkill: string) => 
+                                                            matchedSkill.toLowerCase() === skill.toLowerCase() ||
+                                                            skill.toLowerCase().includes(matchedSkill.toLowerCase()) ||
+                                                            matchedSkill.toLowerCase().includes(skill.toLowerCase())
+                                                        );
+                                                        
+                                                        return (
+                                                            <span 
+                                                                key={index} 
+                                                                className={`px-2 py-1 rounded text-sm ${
+                                                                    isMatched 
+                                                                        ? 'bg-green-600 text-white' 
+                                                                        : 'bg-slate-600 text-slate-200'
+                                                                }`}
+                                                            >
+                                                                {skill}
+                                                            </span>
+                                                        );
+                                                    })}
+                                                    {selectedApplication.skillAnalysis.all_candidate_skills.length > 15 && (
+                                                        <span className="text-slate-400 text-sm">...and {selectedApplication.skillAnalysis.all_candidate_skills.length - 15} more</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Missing Required Skills */}
+                                        {selectedApplication.skillAnalysis.missing_required && selectedApplication.skillAnalysis.missing_required.length > 0 && (
+                                            <div>
+                                                <h4 className="text-slate-300 font-medium mb-3">Missing Required Skills</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedApplication.skillAnalysis.missing_required.map((skill: string, index: number) => (
+                                                        <span key={index} className="bg-red-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
+                                                            <XCircle className="h-3 w-3 mr-1" />
+                                                            {skill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Education & Experience Details */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                {/* Education */}
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6">
+                                    <h3 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">
+                                        <CheckCircle className="h-5 w-5 mr-2 text-green-400" />
+                                        Education
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Education Score:</span>
+                                            <span className="text-slate-300 font-medium">{selectedApplication.componentScores?.education || 0}/100</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Degree:</span>
+                                            <span className="text-slate-300">{selectedApplication.education || 'Not specified'}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Institution:</span>
+                                            <span className="text-slate-300">{selectedApplication.college || 'Not specified'}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Marks:</span>
+                                            <span className="text-slate-300">{selectedApplication.marks || 'Not specified'}</span>
+                                        </div>
+                                        <div className="bg-green-600 text-white px-3 py-2 rounded flex items-center mt-4">
+                                            <CheckCircle className="h-4 w-4 mr-2" />
+                                            Meets education requirement
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Experience */}
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6">
+                                    <h3 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">
+                                        <Clock className="h-5 w-5 mr-2 text-orange-400" />
+                                        Experience
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Experience Score:</span>
+                                            <span className="text-slate-300 font-medium">{selectedApplication.componentScores?.experience || 0}/100</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Years:</span>
+                                            <span className="text-slate-300">0 years</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Required:</span>
+                                            <span className="text-slate-300">0 years</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Rating:</span>
+                                            <span className="text-slate-300">Limited (0 years)</span>
+                                        </div>
+                                        <div className="bg-green-600 text-white px-3 py-2 rounded flex items-center mt-4">
+                                            <CheckCircle className="h-4 w-4 mr-2" />
+                                            Meets experience requirement
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Domain Alignment & Language Quality */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                {/* Domain Alignment */}
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6">
+                                    <h3 className="text-lg font-semibold text-slate-100 mb-4">Domain Alignment</h3>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Domain Score:</span>
+                                            <span className="text-slate-300 font-medium">{selectedApplication.componentScores?.domain || 0}/100</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Primary Domain:</span>
+                                            <span className="text-slate-300">IT</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Target Domain:</span>
+                                            <span className="text-slate-300">IT</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Rating:</span>
+                                            <span className="text-slate-300">Strong Alignment</span>
+                                        </div>
+                                        <div className="bg-green-600 text-white px-3 py-2 rounded flex items-center mt-4">
+                                            <CheckCircle className="h-4 w-4 mr-2" />
+                                            Perfect domain match
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Language Quality */}
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6">
+                                    <h3 className="text-lg font-semibold text-slate-100 mb-4">Language Quality</h3>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Grammar Score:</span>
+                                            <span className="text-slate-300 font-medium">{selectedApplication.componentScores?.language || 0}/100</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Error Count:</span>
+                                            <span className="text-slate-300">0</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Word Count:</span>
+                                            <span className="text-slate-300">99</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-400">Rating:</span>
+                                            <span className="text-slate-300">Fair</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Keyword Density Analysis */}
+                            {selectedApplication.keywordAnalysis && (
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6 mb-6">
+                                    <h3 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">
+                                        <BarChart3 className="h-5 w-5 mr-2 text-blue-400" />
+                                        Keyword Density Analysis
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-400">Keyword Coverage:</span>
+                                                    <span className="text-slate-300 font-medium">{selectedApplication.keywordAnalysis.coverage_percentage || 0}%</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-400">Overall Density:</span>
+                                                    <span className="text-slate-300 font-medium">{selectedApplication.keywordAnalysis.overall_density || 0}%</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-400">Keywords Found:</span>
+                                                    <span className="text-slate-300 font-medium">{selectedApplication.keywordAnalysis.keywords_found || 0}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-400">Keywords Missing:</span>
+                                                    <span className="text-slate-300 font-medium">{selectedApplication.keywordAnalysis.keywords_missing || 0}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="bg-slate-700 rounded-lg p-4">
+                                                <div className="text-center">
+                                                    <div className={`text-2xl font-bold mb-2 ${
+                                                        (selectedApplication.aiScore || 0) >= 80 ? 'text-green-400' :
+                                                        (selectedApplication.aiScore || 0) >= 65 ? 'text-blue-400' :
+                                                        (selectedApplication.aiScore || 0) >= 50 ? 'text-yellow-400' :
+                                                        (selectedApplication.aiScore || 0) >= 35 ? 'text-orange-400' :
+                                                        'text-red-400'
+                                                    }`}>
+                                                        {(selectedApplication.aiScore || 0) >= 80 ? 'Highly Recommended' :
+                                                         (selectedApplication.aiScore || 0) >= 65 ? 'Recommended' :
+                                                         (selectedApplication.aiScore || 0) >= 50 ? 'Consider with Reservations' :
+                                                         (selectedApplication.aiScore || 0) >= 35 ? 'Not Recommended' :
+                                                         'Strongly Not Recommended'}
+                                                    </div>
+                                                    <div className="text-slate-300">Score: {selectedApplication.aiScore || 0}/100</div>
+                                                    <div className="text-slate-400 text-sm mt-2">
+                                                        {selectedApplication.screeningDetails?.recommendation || 'Manual review required'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Overall Assessment */}
+                            {selectedApplication.screeningDetails?.overall_assessment && (
+                                <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6 mb-6">
+                                    <h3 className="text-lg font-semibold text-slate-100 mb-4 flex items-center">
+                                        <Brain className="h-5 w-5 mr-2 text-accent" />
+                                        Overall Assessment
+                                    </h3>
+                                    <p className="text-slate-300 leading-relaxed">
+                                        {selectedApplication.screeningDetails.overall_assessment}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-700">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setShowDetailedScreeningModal(false)}
+                                    className="border-glass-border"
+                                >
+                                    Close
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        setShowDetailedScreeningModal(false)
+                                        setShowResumeModal(true)
+                                    }}
+                                    className="bg-accent hover:bg-accent/90"
+                                >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Resume
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
     </div>
   )

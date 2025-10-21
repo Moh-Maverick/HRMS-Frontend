@@ -582,16 +582,19 @@ export async function fsCreateManagerFeedback(feedbackData: any) {
     return { id: ref.id, ...feedback }
 }
 
-export async function fsGetTeamPerformance() {
-    const uid = auth.currentUser?.uid
-    if (!uid) return []
-
-    // Get performance data for team members
-    const teamMembers = await fsGetTeamMembers()
-    const teamMemberIds = teamMembers.map(member => member.id)
-
-    if (teamMemberIds.length === 0) return []
-
-    const snap = await getDocs(query(collection(db, 'performance'), where('uid', 'in', teamMemberIds)))
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+export async function fsUpdateScreeningResults(applicationId: string, screeningData: any) {
+    try {
+        const applicationRef = doc(db, 'applications', applicationId)
+        await updateDoc(applicationRef, {
+            aiScore: screeningData.ai_score,
+            screeningDetails: screeningData.analysis,
+            screeningCompleted: true,
+            screeningDate: new Date().toISOString()
+        })
+        console.log('Screening results stored successfully')
+        return { success: true }
+    } catch (error) {
+        console.error('Error storing screening results:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
 }
