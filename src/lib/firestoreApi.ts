@@ -417,7 +417,8 @@ export async function fsUpdateApplicationStatus(applicationId: string, status: s
 // Resume Screening API Functions
 export async function screenResume(resumeBase64: string, resumeFileName: string, jobId: string, candidateName: string, enableAI: boolean = true) {
     try {
-        const response = await fetch('http://localhost:8000/resume/screen', {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_BASE || 'https://hrms-backend-lv6f.onrender.com'
+        const response = await fetch(`${backendUrl}/resume/screen`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
