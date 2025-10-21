@@ -168,7 +168,8 @@ export default function CandidateProfilePage() {
                 id="name"
                 value={formData.fullName || ''}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="bg-white border-gray-300"
+                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+                placeholder="Enter your full name"
                 disabled={!isEditing}
               />
             </div>
@@ -182,7 +183,8 @@ export default function CandidateProfilePage() {
                   id="email"
                   value={formData.email || ''}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="pl-10 bg-white border-gray-300"
+                  className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+                  placeholder="your.email@example.com"
                   disabled={!isEditing}
                 />
               </div>
@@ -197,7 +199,8 @@ export default function CandidateProfilePage() {
                   id="phone"
                   value={formData.phone || ''}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="pl-10 bg-white border-gray-300"
+                  className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+                  placeholder="+1 234 567 8900"
                   disabled={!isEditing}
                 />
               </div>
@@ -212,7 +215,8 @@ export default function CandidateProfilePage() {
                   id="location"
                   value={formData.location || ''}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="pl-10 bg-white border-gray-300"
+                  className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+                  placeholder="City, Country"
                   disabled={!isEditing}
                 />
               </div>
@@ -226,7 +230,7 @@ export default function CandidateProfilePage() {
               id="summary"
               value={formData.summary || ''}
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-              className="bg-white border-gray-300 min-h-[100px]"
+              className="bg-white border-gray-300 min-h-[100px] text-gray-900 placeholder:text-gray-500"
               placeholder="Tell us about yourself, your skills, and career goals..."
               disabled={!isEditing}
             />
@@ -250,7 +254,7 @@ export default function CandidateProfilePage() {
               id="skills"
               value={formData.skills || ''}
               onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-              className="bg-white border-gray-300 min-h-[80px]"
+              className="bg-white border-gray-300 min-h-[80px] text-gray-900 placeholder:text-gray-500"
               placeholder="List your technical skills, programming languages, tools, etc."
               disabled={!isEditing}
             />
@@ -262,7 +266,7 @@ export default function CandidateProfilePage() {
               id="experience"
               value={formData.experience || ''}
               onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-              className="bg-white border-gray-300 min-h-[120px]"
+              className="bg-white border-gray-300 min-h-[120px] text-gray-900 placeholder:text-gray-500"
               placeholder="Describe your work experience, projects, and achievements..."
               disabled={!isEditing}
             />
@@ -285,7 +289,7 @@ export default function CandidateProfilePage() {
             id="education"
             value={formData.education || ''}
             onChange={(e) => setFormData({ ...formData, education: e.target.value })}
-            className="bg-white border-gray-300 min-h-[100px]"
+            className="bg-white border-gray-300 min-h-[100px] text-gray-900 placeholder:text-gray-500"
             placeholder="List your educational qualifications, degrees, certifications, etc."
             disabled={!isEditing}
           />

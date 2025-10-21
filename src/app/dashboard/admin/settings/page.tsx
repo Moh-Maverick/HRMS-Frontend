@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select } from '@/components/ui/select'
-import { Settings as SettingsIcon, Mail, Bell, Shield, Database } from 'lucide-react'
+import { Settings as SettingsIcon, Mail, Shield, Database } from 'lucide-react'
 
 export default function AdminSettingsPage() {
     const router = useRouter()

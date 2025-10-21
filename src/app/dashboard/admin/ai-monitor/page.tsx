@@ -29,15 +29,15 @@ const models = [
     accuracy: "96.5%"
   },
   {
-    name: "Performance Predictor",
-    status: "training",
+    name: "JD generator",
+    status: "active",
     uptime: "98.2%",
-    lastTrained: "Training...",
+    lastTrained: "1 day ago",
     requests: "5.1K",
     accuracy: "89.3%"
   },
   {
-    name: "Sentiment Analyzer",
+    name: "HR Chatbot",
     status: "active",
     uptime: "99.6%",
     lastTrained: "3 days ago",

@@ -83,33 +83,6 @@ export default function CandidateInterviewPage() {
                     </div>
 
                     <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-card/50 border border-glass-border">
-                            <div className="flex items-center justify-between mb-3">
-                                <div>
-                                    <h4 className="font-semibold text-foreground">{interviewData?.position}</h4>
-                                    <p className="text-sm text-muted-foreground">{interviewData?.company}</p>
-                                </div>
-                                <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent">
-                                    Scheduled
-                                </span>
-                            </div>
-                            
-                            <div className="space-y-2 text-sm text-muted-foreground">
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4 text-accent" />
-                                    <span>{interviewData?.date} at {interviewData?.time}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4 text-accent" />
-                                    <span>Duration: {interviewData?.duration}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Users className="h-4 w-4 text-accent" />
-                                    <span>Type: {interviewData?.type}</span>
-                                </div>
-                            </div>
-                        </div>
-
                         <div className="p-4 rounded-xl bg-accent/10 border border-accent/20">
                             <h4 className="font-semibold text-accent mb-2">What to Expect</h4>
                             <ul className="text-sm text-accent/80 space-y-1">
@@ -131,23 +104,26 @@ export default function CandidateInterviewPage() {
                     </div>
 
                     <div className="space-y-4">
-                        {tokens.map((token) => (
-                            <div key={token.id} className="p-4 rounded-xl bg-card/50 border border-glass-border">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="font-semibold text-foreground">Token: {token.value}</span>
-                                    <span className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent">
-                                        Active
-                                    </span>
-                                </div>
-                                <p className="text-sm text-muted-foreground">Expires: {token.expires}</p>
+                        <div className="p-4 rounded-xl bg-card/50 border border-glass-border">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Key className="h-5 w-5 text-accent" />
+                                <h4 className="font-semibold text-foreground">Session ID</h4>
                             </div>
-                        ))}
+                            <p className="text-sm text-muted-foreground mb-3">
+                                Please check your email for your session ID. You can join the interview from the link provided in your mail or directly from this dashboard.
+                            </p>
+                            <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
+                                <p className="text-xs text-accent/80 text-center">
+                                    Session details have been sent to your registered email address
+                                </p>
+                            </div>
+                        </div>
 
                         <div className="p-4 rounded-xl bg-accent/10 border border-accent/20">
                             <h4 className="font-semibold text-accent mb-2">Before You Start</h4>
                             <ul className="text-sm text-accent/80 space-y-1">
                                 <li>• Ensure stable internet connection</li>
-                                <li>• Test your camera and microphone</li>
+                                <li>• Test your microphone</li>
                                 <li>• Find a quiet, well-lit environment</li>
                                 <li>• Have your resume ready for reference</li>
                             </ul>
@@ -170,7 +146,7 @@ export default function CandidateInterviewPage() {
                         <Video className="h-16 w-16 text-accent mx-auto mb-4" />
                         <h4 className="text-xl font-semibold text-foreground mb-2">AI Interview Session</h4>
                         <p className="text-muted-foreground mb-4">
-                            Your interview is scheduled for {interviewData?.date} at {interviewData?.time}
+                            Your interview session is ready. Use your session ID from email to join.
                         </p>
                     </div>
 
