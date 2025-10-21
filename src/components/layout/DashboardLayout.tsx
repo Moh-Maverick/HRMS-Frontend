@@ -1,5 +1,5 @@
 "use client"
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { wakeUpBackend } from "@/lib/firestoreApi";
 
 interface DashboardLayoutProps {
     children: ReactNode;
@@ -74,6 +75,11 @@ export const DashboardLayout = ({ children, userRole, userName }: DashboardLayou
     const pathname = usePathname();
     const { logout } = useAuth();
     const menuItems = roleMenuItems[userRole];
+
+    // Wake up backend when dashboard loads (for Render free tier)
+    useEffect(() => {
+        wakeUpBackend();
+    }, []);
 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">

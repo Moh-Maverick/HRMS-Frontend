@@ -35,6 +35,9 @@ export default function CandidateProfilePage() {
   const [profile, setProfile] = useState<CandidateProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [dragActive, setDragActive] = useState(false)
   const [formData, setFormData] = useState<CandidateProfile>({
     fullName: '',
     email: '',
@@ -79,13 +82,37 @@ export default function CandidateProfilePage() {
 
 
   const handleSave = async () => {
+    setSaving(true)
+    setSaveMessage(null)
+    
     try {
-      await fsUpdateCandidateProfile(formData)
-      setIsEditing(false)
-      const updatedProfile = await fsGetCandidateProfile()
-      setProfile(updatedProfile)
+      console.log('💾 Saving profile data:', formData)
+      const result = await fsUpdateCandidateProfile(formData)
+      
+      if (result.success) {
+        setSaveMessage({ type: 'success', text: 'Profile updated successfully!' })
+        setIsEditing(false)
+        
+        // Refresh profile data
+        const updatedProfile = await fsGetCandidateProfile()
+        setProfile(updatedProfile)
+        
+        // Clear message after 3 seconds
+        setTimeout(() => setSaveMessage(null), 3000)
+      } else {
+        setSaveMessage({ 
+          type: 'error', 
+          text: result.error || 'Failed to update profile. Please try again.' 
+        })
+      }
     } catch (error) {
-      console.error('Error updating profile:', error)
+      console.error('❌ Error updating profile:', error)
+      setSaveMessage({ 
+        type: 'error', 
+        text: 'An unexpected error occurred. Please try again.' 
+      })
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -106,10 +133,85 @@ export default function CandidateProfilePage() {
     setIsEditing(false)
   }
 
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    
+    if (!isEditing) return
+    
+    const files = e.dataTransfer.files
+    if (files && files[0]) {
+      const file = files[0]
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+      if (!allowedTypes.includes(file.type)) {
+        setSaveMessage({ 
+          type: 'error', 
+          text: 'Please upload a PDF or DOC file only.' 
+        })
+        setTimeout(() => setSaveMessage(null), 3000)
+        return
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setSaveMessage({ 
+          type: 'error', 
+          text: 'File size must be less than 5MB.' 
+        })
+        setTimeout(() => setSaveMessage(null), 3000)
+        return
+      }
+      
+      setFormData({ ...formData, resume: file })
+      setSaveMessage({ 
+        type: 'success', 
+        text: `Resume "${file.name}" uploaded successfully!` 
+      })
+      setTimeout(() => setSaveMessage(null), 3000)
+    }
+  }
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+      if (!allowedTypes.includes(file.type)) {
+        setSaveMessage({ 
+          type: 'error', 
+          text: 'Please upload a PDF or DOC file only.' 
+        })
+        setTimeout(() => setSaveMessage(null), 3000)
+        return
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setSaveMessage({ 
+          type: 'error', 
+          text: 'File size must be less than 5MB.' 
+        })
+        setTimeout(() => setSaveMessage(null), 3000)
+        return
+      }
+      
       setFormData({ ...formData, resume: file })
+      setSaveMessage({ 
+        type: 'success', 
+        text: `Resume "${file.name}" selected successfully!` 
+      })
+      setTimeout(() => setSaveMessage(null), 3000)
     }
   }
 
@@ -135,11 +237,11 @@ export default function CandidateProfilePage() {
         <div className="flex gap-2">
           {isEditing ? (
             <>
-              <Button variant="outline" onClick={handleCancel} className="border-gray-300">
+              <Button variant="outline" onClick={handleCancel} className="border-gray-300" disabled={saving}>
                 Cancel
               </Button>
-              <Button onClick={handleSave}>
-                Save Changes
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : 'Save Changes'}
               </Button>
             </>
           ) : (
@@ -149,6 +251,17 @@ export default function CandidateProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Save Message */}
+      {saveMessage && (
+        <div className={`p-4 rounded-lg ${
+          saveMessage.type === 'success' 
+            ? 'bg-green-50 border border-green-200 text-green-800' 
+            : 'bg-red-50 border border-red-200 text-red-800'
+        }`}>
+          {saveMessage.text}
+        </div>
+      )}
 
       {/* Basic Info */}
       <GlassCard delay={0.1}>
@@ -163,28 +276,26 @@ export default function CandidateProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Full Name */}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-700">Full Name</Label>
+              <Label htmlFor="name" className="text-gray-800 font-medium">Full Name</Label>
               <Input
                 id="name"
                 value={formData.fullName || ''}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
-                placeholder="Enter your full name"
+                className="bg-white border-gray-300"
                 disabled={!isEditing}
               />
             </div>
 
             {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700">Email</Label>
+              <Label htmlFor="email" className="text-gray-800 font-medium">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isEditing ? 'text-gray-400' : 'text-gray-300'}`} />
                 <Input
                   id="email"
                   value={formData.email || ''}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
-                  placeholder="your.email@example.com"
+                  className="pl-10 bg-white border-gray-300"
                   disabled={!isEditing}
                 />
               </div>
@@ -192,15 +303,14 @@ export default function CandidateProfilePage() {
 
             {/* Phone */}
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-gray-700">Phone</Label>
+              <Label htmlFor="phone" className="text-gray-800 font-medium">Phone</Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Phone className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isEditing ? 'text-gray-400' : 'text-gray-300'}`} />
                 <Input
                   id="phone"
                   value={formData.phone || ''}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
-                  placeholder="+1 234 567 8900"
+                  className="pl-10 bg-white border-gray-300"
                   disabled={!isEditing}
                 />
               </div>
@@ -208,15 +318,14 @@ export default function CandidateProfilePage() {
 
             {/* Location */}
             <div className="space-y-2">
-              <Label htmlFor="location" className="text-gray-700">Location</Label>
+              <Label htmlFor="location" className="text-gray-800 font-medium">Location</Label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isEditing ? 'text-gray-400' : 'text-gray-300'}`} />
                 <Input
                   id="location"
                   value={formData.location || ''}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
-                  placeholder="City, Country"
+                  className="pl-10 bg-white border-gray-300"
                   disabled={!isEditing}
                 />
               </div>
@@ -225,12 +334,12 @@ export default function CandidateProfilePage() {
 
           {/* Summary */}
           <div className="space-y-2">
-            <Label htmlFor="summary" className="text-gray-700">Professional Summary</Label>
+            <Label htmlFor="summary" className="text-gray-800 font-medium">Professional Summary</Label>
             <Textarea
               id="summary"
               value={formData.summary || ''}
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-              className="bg-white border-gray-300 min-h-[100px] text-gray-900 placeholder:text-gray-500"
+              className="bg-white border-gray-300 min-h-[100px]"
               placeholder="Tell us about yourself, your skills, and career goals..."
               disabled={!isEditing}
             />
@@ -249,24 +358,24 @@ export default function CandidateProfilePage() {
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="skills" className="text-gray-700">Skills</Label>
+            <Label htmlFor="skills" className="text-gray-800 font-medium">Skills</Label>
             <Textarea
               id="skills"
               value={formData.skills || ''}
               onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-              className="bg-white border-gray-300 min-h-[80px] text-gray-900 placeholder:text-gray-500"
+              className="bg-white border-gray-300 min-h-[80px]"
               placeholder="List your technical skills, programming languages, tools, etc."
               disabled={!isEditing}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="experience" className="text-gray-700">Work Experience</Label>
+            <Label htmlFor="experience" className="text-gray-800 font-medium">Work Experience</Label>
             <Textarea
               id="experience"
               value={formData.experience || ''}
               onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-              className="bg-white border-gray-300 min-h-[120px] text-gray-900 placeholder:text-gray-500"
+              className="bg-white border-gray-300 min-h-[120px]"
               placeholder="Describe your work experience, projects, and achievements..."
               disabled={!isEditing}
             />
@@ -284,12 +393,12 @@ export default function CandidateProfilePage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="education" className="text-gray-700">Educational Background</Label>
+          <Label htmlFor="education" className="text-gray-800 font-medium">Educational Background</Label>
           <Textarea
             id="education"
             value={formData.education || ''}
             onChange={(e) => setFormData({ ...formData, education: e.target.value })}
-            className="bg-white border-gray-300 min-h-[100px] text-gray-900 placeholder:text-gray-500"
+            className="bg-white border-gray-300 min-h-[100px]"
             placeholder="List your educational qualifications, degrees, certifications, etc."
             disabled={!isEditing}
           />
@@ -306,11 +415,32 @@ export default function CandidateProfilePage() {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-gray-700">Upload Resume</Label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-orange-400 transition-all cursor-pointer">
-            <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
-            <p className="text-xs text-gray-500 mt-1">PDF, DOC up to 5MB</p>
+          <Label className="text-gray-700 font-medium">Upload Resume</Label>
+          <div 
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
+              isEditing 
+                ? `border-gray-300 hover:border-orange-400 cursor-pointer bg-gray-50 hover:bg-orange-50 ${
+                    dragActive ? 'border-orange-500 bg-orange-100' : ''
+                  }` 
+                : 'border-gray-200 bg-gray-100 cursor-not-allowed'
+            }`}
+            onClick={() => {
+              if (isEditing) {
+                document.getElementById('resume-upload')?.click()
+              }
+            }}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <Upload className={`h-8 w-8 mx-auto mb-2 ${isEditing ? 'text-gray-400' : 'text-gray-300'}`} />
+            <p className={`text-sm ${isEditing ? 'text-gray-600' : 'text-gray-400'}`}>
+              {isEditing ? 'Click to upload or drag and drop' : 'Enable editing to upload resume'}
+            </p>
+            <p className={`text-xs mt-1 ${isEditing ? 'text-gray-500' : 'text-gray-400'}`}>
+              PDF, DOC up to 5MB
+            </p>
             <input
               type="file"
               accept=".pdf,.doc,.docx"
@@ -319,14 +449,24 @@ export default function CandidateProfilePage() {
               id="resume-upload"
               disabled={!isEditing}
             />
-            <label htmlFor="resume-upload" className="cursor-pointer">
-              <Button variant="outline" className="mt-2 border-gray-300" disabled={!isEditing}>
-                Choose File
-              </Button>
-            </label>
+            <Button 
+              variant="outline" 
+              className={`mt-2 ${isEditing ? 'border-gray-300 hover:border-orange-400' : 'border-gray-200'}`} 
+              disabled={!isEditing}
+            >
+              {isEditing ? 'Choose File' : 'Upload Disabled'}
+            </Button>
           </div>
           {formData.resume && (
-            <p className="text-sm text-green-600">✓ Resume uploaded successfully</p>
+            <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-600 flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                {formData.resume instanceof File 
+                  ? `✓ Resume uploaded: ${formData.resume.name}` 
+                  : '✓ Resume uploaded successfully'
+                }
+              </p>
+            </div>
           )}
         </div>
       </GlassCard>

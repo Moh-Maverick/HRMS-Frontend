@@ -7,6 +7,11 @@ Exposes POST /chat compatible with the Next.js ChatWidget.tsx:
 """
 
 from typing import Optional, Dict, Any
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

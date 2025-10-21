@@ -79,24 +79,6 @@ const AIHighlights = () => {
           ))}
         </div>
 
-        {/* Call-to-action */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          viewport={{ once: true }}
-          className="mt-12 text-center"
-        >
-          <p className="text-lg font-medium text-foreground mb-6">
-            Ready to transform your HR operations?
-          </p>
-          <a
-            href="/auth/signup"
-            className="inline-flex items-center space-x-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-all duration-300 hover:scale-105 shadow-lg"
-          >
-            <span>Start Your Free Trial</span>
-          </a>
-        </motion.div>
       </div>
     </section>
   )

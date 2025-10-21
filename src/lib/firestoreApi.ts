@@ -1,11 +1,37 @@
 import { auth, db } from '@/lib/firebase'
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore'
 
 // Debug environment variables
 console.log('🔧 Environment check:', {
     NEXT_PUBLIC_BACKEND_BASE: process.env.NEXT_PUBLIC_BACKEND_BASE,
     NODE_ENV: process.env.NODE_ENV
 })
+
+// Backend wake-up function for Render free tier
+export async function wakeUpBackend() {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_BASE || 'http://localhost:8000'
+    
+    try {
+        console.log('🌅 Waking up backend...')
+        const response = await fetch(`${backendUrl}/health`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        
+        if (response.ok) {
+            console.log('✅ Backend is awake!')
+            return true
+        } else {
+            console.log('⚠️ Backend responded but with error:', response.status)
+            return false
+        }
+    } catch (error) {
+        console.log('❌ Failed to wake up backend:', error)
+        return false
+    }
+}
 
 async function recalcDeptCount(deptName: string) {
     if (!deptName) return
@@ -473,28 +499,60 @@ export const fsGetCandidateProfile = async () => {
     const user = auth.currentUser;
     if (!user) return null;
 
-    const docRef = doc(db, "users", user.uid);
+    // Try to get from candidateProfiles collection first
+    const docRef = doc(db, "candidateProfiles", user.uid);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
         return { id: docSnap.id, ...docSnap.data() } as any;
     } else {
-        return null;
+        // Fallback to users collection for backward compatibility
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+            return { id: userDocSnap.id, ...userDocSnap.data() } as any;
+        } else {
+            return null;
+        }
     }
 };
 
 export async function fsUpdateCandidateProfile(profileData: any) {
     const uid = auth.currentUser?.uid
-    if (!uid) return { success: false }
+    if (!uid) return { success: false, error: 'User not authenticated' }
 
-    const docRef = doc(db, 'candidateProfiles', uid)
     try {
-        await updateDoc(docRef, profileData)
-    } catch {
-        // If document doesn't exist, create it
-        await addDoc(collection(db, 'candidateProfiles'), { uid, ...profileData })
+        // Convert resume file to Base64 if it's a File object
+        let processedData = { ...profileData }
+        if (profileData.resume && profileData.resume instanceof File) {
+            const resumeBase64 = await convertFileToBase64(profileData.resume)
+            processedData = {
+                ...profileData,
+                resume: resumeBase64,
+                resumeFileName: profileData.resume.name,
+                resumeFileType: profileData.resume.type
+            }
+        }
+
+        const docRef = doc(db, 'candidateProfiles', uid)
+        
+        try {
+            // Try to update existing document
+            await updateDoc(docRef, processedData)
+            console.log('✅ Profile updated successfully')
+        } catch (updateError) {
+            // If document doesn't exist, create it
+            console.log('Document not found, creating new profile')
+            await setDoc(docRef, { uid, ...processedData })
+            console.log('✅ Profile created successfully')
+        }
+        
+        return { success: true }
+    } catch (error) {
+        console.error('❌ Error updating candidate profile:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
-    return { success: true }
 }
 
 // EMPLOYEE SPECIFIC FUNCTIONS
