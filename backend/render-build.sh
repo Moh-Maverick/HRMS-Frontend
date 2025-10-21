@@ -7,9 +7,14 @@ pip install --upgrade pip
 # Pre-install numpy before other deps
 pip install numpy==1.24.4
 
-# Now install the rest
+# Install core packages first
+pip install -U pip setuptools wheel
+pip install -U spacy
+
+# Install other dependencies
 pip install -r requirements.txt --no-build-isolation --no-cache-dir
 
+# Download spaCy model (official method)
 echo "Downloading spaCy model..."
 python -m spacy download en_core_web_sm
 
