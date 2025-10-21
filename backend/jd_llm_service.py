@@ -84,47 +84,57 @@ class JDLLMService:
         skills_str = ", ".join(skills) if skills else "Relevant technical skills"
         responsibilities_str = "\n".join([f"- {resp}" for resp in responsibilities]) if responsibilities else ""
         
-        prompt = f"""Generate a clean, professional job description for this position. Keep it concise and well-structured.
-
-**Position:** {role}
-**Department:** {department}
-**Experience:** {experience}
-**Location:** {location}
-**Type:** {employment_type}
-
-**Required Skills:** {skills_str}
-
-{f"**Responsibilities:**\n{responsibilities_str}" if responsibilities_str else ""}
-
-{f"**Notes:** {additional_notes}" if additional_notes else ""}
-
-Create a job description with these sections only:
-
-**Job Summary:**
-[2-3 sentences about the role and impact]
-
-**Key Responsibilities:**
-- [Responsibility 1]
-- [Responsibility 2]
-- [Responsibility 3]
-- [Responsibility 4]
-
-**Required Skills:**
-- [Group related skills together like: Python/JavaScript, React/Node.js, HTML/CSS, Git/GitHub, SQL/MongoDB, Docker/AWS]
-
-**Qualifications:**
-- [Education/experience requirements]
-
-**Benefits:**
-- [Key benefits 1-3]
-
-**Important:** 
-- Use clean formatting with bullet points
-- Group related skills together (e.g., Python/JavaScript, React/Node.js, HTML/CSS)
-- Include ALL provided skills: {skills_str}
-- Keep each section concise
-- No repetition or extra formatting
-- Professional tone"""
+        # Build the prompt without f-string to avoid backslash issues
+        prompt_parts = [
+            "Generate a clean, professional job description for this position. Keep it concise and well-structured.",
+            "",
+            f"**Position:** {role}",
+            f"**Department:** {department}",
+            f"**Experience:** {experience}",
+            f"**Location:** {location}",
+            f"**Type:** {employment_type}",
+            "",
+            f"**Required Skills:** {skills_str}",
+            ""
+        ]
+        
+        if responsibilities_str:
+            prompt_parts.extend([f"**Responsibilities:**\n{responsibilities_str}", ""])
+        
+        if additional_notes:
+            prompt_parts.extend([f"**Notes:** {additional_notes}", ""])
+        
+        prompt_parts.extend([
+            "Create a job description with these sections only:",
+            "",
+            "**Job Summary:**",
+            "[2-3 sentences about the role and impact]",
+            "",
+            "**Key Responsibilities:**",
+            "- [Responsibility 1]",
+            "- [Responsibility 2]", 
+            "- [Responsibility 3]",
+            "- [Responsibility 4]",
+            "",
+            "**Required Skills:**",
+            "- [Group related skills together like: Python/JavaScript, React/Node.js, HTML/CSS, Git/GitHub, SQL/MongoDB, Docker/AWS]",
+            "",
+            "**Qualifications:**",
+            "- [Education/experience requirements]",
+            "",
+            "**Benefits:**",
+            "- [Key benefits 1-3]",
+            "",
+            "**Important:**",
+            "- Use clean formatting with bullet points",
+            "- Group related skills together (e.g., Python/JavaScript, React/Node.js, HTML/CSS)",
+            f"- Include ALL provided skills: {skills_str}",
+            "- Keep each section concise",
+            "- No repetition or extra formatting",
+            "- Professional tone"
+        ])
+        
+        prompt = "\n".join(prompt_parts)
         return prompt
     
     async def _generate_gemini_jd(self, prompt: str) -> str:
