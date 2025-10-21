@@ -5,7 +5,7 @@ echo "Installing Python dependencies..."
 pip install --upgrade pip
 
 # Pre-install numpy before other deps
-pip install numpy==1.24.3
+pip install numpy==1.24.4
 
 # Now install the rest
 pip install -r requirements.txt --no-build-isolation --no-cache-dir
