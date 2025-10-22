@@ -8,7 +8,7 @@ export default function EmployeeLeavePage() {
     const [to, setTo] = useState('')
     const [type, setType] = useState('Casual')
     const [reason, setReason] = useState('')
-    const [list, setList] = useState<Array<{ id: string; from: string; to: string; type: string; reason: string; days: number; status: string }>>([])
+    const [list, setList] = useState<Array<{ id: string; from: string; to: string; type: string; reason: string; days: number; status: string; startDate?: string; endDate?: string }>>([])
 
     useEffect(() => {
         Api.getLeaves().then((items) => setList(items as any))
@@ -53,8 +53,8 @@ export default function EmployeeLeavePage() {
                                 <span className={`text-xs px-2 py-1 rounded-full ${l.status === 'approved' ? 'bg-emerald-50 text-emerald-700' : l.status === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>{l.status || 'pending'}</span>
                             </div>
                             <div className="text-sm text-gray-700">
-                                <div className="mb-1"><span className="font-medium">When:</span> {l.from || '-'} → {l.to || '-'}</div>
-                                <div className="mb-1"><span className="font-medium">Days:</span> {l.days || '-'}</div>
+                                <div className="mb-1"><span className="font-medium">When:</span> {(l.from || l.startDate) || '-'} → {(l.to || l.endDate) || '-'}</div>
+                                <div className="mb-1"><span className="font-medium">Days:</span> {l.days && !isNaN(l.days) ? l.days : '-'}</div>
                                 <div className=""><span className="font-medium">Reason:</span> {l.reason || '-'}</div>
                             </div>
                         </div>

@@ -166,12 +166,70 @@ export async function fsScheduleInterview(payload: { candidate: string; date: st
 
 // MANAGER: LEAVES
 export async function fsGetPendingLeaves() {
-    const snap = await getDocs(query(collection(db, 'leaves'), where('status', '==', 'pending')))
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+    try {
+        const snap = await getDocs(query(collection(db, 'leaves'), where('status', '==', 'pending')))
+        console.log('🔍 Found pending leaves:', snap.docs.length)
+        snap.docs.forEach(doc => {
+            console.log('Raw leave data:', { id: doc.id, ...doc.data() })
+        })
+        
+        const leavesWithEmployeeNames = await Promise.all(snap.docs.map(async (d) => {
+            const data = d.data() as any
+            let employeeName = data.employee || 'Unknown' // Use existing employee field first
+            
+            // If no employee name, fetch from users collection
+            if (!employeeName || employeeName === 'Unknown') {
+                if (data.uid) {
+                    try {
+                        const userSnap = await getDoc(doc(db, 'users', data.uid))
+                        if (userSnap.exists()) {
+                            employeeName = userSnap.data().name || 'Unknown'
+                        }
+                    } catch (error) {
+                        console.error('Error fetching user name:', error)
+                    }
+                }
+            }
+
+            // Calculate days if missing or invalid
+            if (!data.days || isNaN(data.days)) {
+                if (data.from && data.to) {
+                    const fromDate = new Date(data.from)
+                    const toDate = new Date(data.to)
+                    const diffTime = Math.abs(toDate.getTime() - fromDate.getTime())
+                    data.days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+                } else {
+                    data.days = 1 // Default to 1 day if can't calculate
+                }
+            }
+
+            const leaveData = { id: d.id, ...data, employee: employeeName }
+            // console.log('Leave data:', leaveData)
+            return leaveData
+        }))
+        
+        return leavesWithEmployeeNames
+    } catch (error) {
+        console.error('Error fetching pending leaves:', error)
+        return []
+    }
 }
 export async function fsDecideLeave(id: string, decision: 'approved' | 'rejected') {
-    await updateDoc(doc(db, 'leaves', id), { status: decision })
-    return { success: true, decision }
+    try {
+        const leaveRef = doc(db, 'leaves', id)
+        const leaveDoc = await getDoc(leaveRef)
+        
+        if (!leaveDoc.exists()) {
+            console.warn(`Leave document ${id} does not exist`)
+            return { success: false, error: 'Leave request not found' }
+        }
+        
+        await updateDoc(leaveRef, { status: decision })
+        return { success: true, decision }
+    } catch (error) {
+        console.error('Error updating leave:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
 }
 
 // EMPLOYEE: PROFILE
@@ -204,7 +262,25 @@ export async function fsGetMyLeaves() {
     const uid = auth.currentUser?.uid
     if (!uid) return []
     const qSnap = await getDocs(query(collection(db, 'leaves'), where('uid', '==', uid)))
-    return qSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+    return qSnap.docs.map((d) => {
+        const data = d.data() as any
+        // Normalize field names - handle both 'from/to' and 'startDate/endDate'
+        if (!data.from && data.startDate) data.from = data.startDate
+        if (!data.to && data.endDate) data.to = data.endDate
+        
+        // Calculate days if missing or invalid
+        if (!data.days || isNaN(data.days)) {
+            if (data.from && data.to) {
+                const fromDate = new Date(data.from)
+                const toDate = new Date(data.to)
+                const diffTime = Math.abs(toDate.getTime() - fromDate.getTime())
+                data.days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+            } else {
+                data.days = 1 // Default to 1 day if can't calculate
+            }
+        }
+        return { id: d.id, ...data }
+    })
 }
 
 // EMPLOYEE: FEEDBACK
@@ -281,10 +357,18 @@ export async function fsMarkAttendance(status: 'checkIn' | 'checkOut') {
 }
 
 export async function fsGetTeamMembers() {
-    const user = auth.currentUser
-    if (!user) throw new Error('Not authenticated')
-    const snap = await getDocs(query(collection(db, 'users'), where('managerId', '==', user.uid)))
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+    try {
+        const user = auth.currentUser
+        if (!user) {
+            console.warn('User not authenticated, returning empty team members')
+            return []
+        }
+        const snap = await getDocs(query(collection(db, 'users'), where('managerId', '==', user.uid)))
+        return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
+    } catch (error) {
+        console.error('Error fetching team members:', error)
+        return []
+    }
 }
 
 // CANDIDATE SPECIFIC FUNCTIONS

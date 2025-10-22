@@ -17,9 +17,9 @@ const candidateStageData = [
 ]
 
 const upcomingInterviews = [
-    { candidate: 'John Doe', position: 'Senior Developer', time: '10:00 AM', date: 'Today' },
-    { candidate: 'Jane Smith', position: 'UI Designer', time: '2:00 PM', date: 'Today' },
-    { candidate: 'Mike Johnson', position: 'Product Manager', time: '11:00 AM', date: 'Tomorrow' },
+    { candidate: 'N V Karan', position: 'AIML Engineer', time: '2:00 PM', date: 'Today' },
+    { candidate: 'Mohit R', position: 'Full-Stack Developer', time: '10:00 AM', date: 'Tomorrow' },
+    { candidate: 'Shreyas L', position: 'Backend Developer', time: '4:00 PM', date: 'Tomorrow' },
 ]
 
 export default function HRDashboard() {

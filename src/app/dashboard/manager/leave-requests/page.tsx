@@ -25,10 +25,15 @@ export default function ManagerLeaveRequestsPage() {
 
     const handleLeaveDecision = async (id: string, decision: 'approved' | 'rejected') => {
         try {
-            await fsDecideLeave(id, decision)
-            setLeaves(prev => prev.filter(leave => leave.id !== id))
+            const result = await fsDecideLeave(id, decision)
+            if (result.success) {
+                setLeaves(prev => prev.filter(leave => leave.id !== id))
+            } else {
+                alert(`Failed to ${decision} leave: ${result.error || 'Unknown error'}`)
+            }
         } catch (error) {
             console.error('Error deciding leave:', error)
+            alert('Error processing leave request. Please try again.')
         }
     }
 

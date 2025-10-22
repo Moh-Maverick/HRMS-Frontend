@@ -33,6 +33,15 @@ export default function EmployeeDashboard() {
         router.push('/dashboard/employee/leave-request')
     }
 
+    const refreshLeaves = async () => {
+        try {
+            const leavesData = await fsGetMyLeaves()
+            setLeaves(leavesData)
+        } catch (error) {
+            console.error('Error refreshing leaves:', error)
+        }
+    }
+
     const handleViewPayslips = () => {
         router.push('/dashboard/employee/payroll')
     }
@@ -83,7 +92,13 @@ export default function EmployeeDashboard() {
         const fetchData = async () => {
             try {
                 const leavesData = await fsGetMyLeaves()
-                setLeaves(leavesData)
+                // Sort leaves by 'from' date in descending order (latest on top)
+                const sortedLeaves = leavesData.sort((a, b) => {
+                    const dateA = new Date(a.from || a.startDate || a.appliedAt || 0)
+                    const dateB = new Date(b.from || b.startDate || b.appliedAt || 0)
+                    return dateB.getTime() - dateA.getTime()
+                })
+                setLeaves(sortedLeaves)
             } catch (error) {
                 console.error('Error fetching data:', error)
             } finally {
@@ -91,6 +106,10 @@ export default function EmployeeDashboard() {
             }
         }
         fetchData()
+        
+        // Refresh leaves every 30 seconds to catch new requests
+        const interval = setInterval(fetchData, 30000)
+        return () => clearInterval(interval)
     }, [])
 
     if (loading) {
@@ -183,12 +202,21 @@ export default function EmployeeDashboard() {
                         </Button>
                     </div>
                     <div className="space-y-3">
-                        {leaves.slice(0, 3).map((leave, index) => (
-                            <div key={index} className="p-4 rounded-xl bg-muted/30 border border-glass-border">
+                        {loading ? (
+                            <div className="text-center text-muted-foreground py-4">Loading leave requests...</div>
+                        ) : leaves.length === 0 ? (
+                            <div className="text-center text-muted-foreground py-4">No leave requests found</div>
+                        ) : (
+                            leaves.slice(0, 3).map((leave, index) => (
+                            <div key={leave.id || index} className="p-4 rounded-xl bg-muted/30 border border-glass-border">
                                 <div className="flex items-start justify-between mb-2">
                                     <div>
-                                        <p className="font-semibold text-foreground">{leave.type}</p>
-                                        <p className="text-sm text-muted-foreground">{leave.from} - {leave.to}</p>
+                                        <p className="font-semibold text-foreground">{leave.type || 'Leave Request'}</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {(leave.from || leave.startDate) && (leave.to || leave.endDate) 
+                                                ? `${leave.from || leave.startDate} - ${leave.to || leave.endDate}` 
+                                                : 'Date not specified'}
+                                        </p>
                                     </div>
                                     <span className={`text-xs px-2 py-1 rounded-full ${leave.status === 'approved'
                                         ? 'bg-green-400/20 text-green-400'
@@ -196,12 +224,15 @@ export default function EmployeeDashboard() {
                                             ? 'bg-yellow-400/20 text-yellow-400'
                                             : 'bg-red-400/20 text-red-400'
                                         }`}>
-                                        {leave.status}
+                                        {leave.status || 'pending'}
                                     </span>
                                 </div>
-                                <p className="text-sm text-muted-foreground">{leave.days} day{leave.days > 1 ? 's' : ''}</p>
+                                <p className="text-sm text-muted-foreground">
+                                    {leave.days && !isNaN(leave.days) ? `${leave.days} day${leave.days > 1 ? 's' : ''}` : 'Calculating...'}
+                                </p>
                             </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </GlassCard>
             </div>

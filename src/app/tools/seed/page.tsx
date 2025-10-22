@@ -327,26 +327,53 @@ export default function SeedPage() {
             // Update leaves with proper structure
             const leavesSnap = await getDocs(collection(db, 'leaves'))
             if (leavesSnap.empty) {
-                for (let i = 0; i < 30; i++) {
-                    const user = existingUsers[Math.floor(Math.random() * existingUsers.length)]
-                    if (user.role === 'employee') {
-                        const fromDate = new Date(Date.now() + Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000)
-                        const toDate = new Date(fromDate.getTime() + Math.floor(Math.random() * 5) * 24 * 60 * 60 * 1000)
-                        const days = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
-
-                        await addDoc(collection(db, 'leaves'), {
-                            uid: user.id,
-                            employee: user.name,
-                            from: fromDate.toISOString().split('T')[0],
-                            to: toDate.toISOString().split('T')[0],
-                            days,
-                            type: ['Medical', 'Personal', 'Vacation', 'Sick'][Math.floor(Math.random() * 4)],
-                            reason: 'Personal reasons',
-                            status: ['pending', 'approved', 'rejected'][Math.floor(Math.random() * 3)],
-                            appliedAt: Date.now() - Math.floor(Math.random() * 10) * 24 * 60 * 60 * 1000,
-                            reviewedBy: existingUsers.find(u => u.role === 'manager')?.id || null
-                        })
+                const employees = existingUsers.filter(u => u.role === 'employee')
+                const managers = existingUsers.filter(u => u.role === 'manager')
+                
+                // Create realistic leave requests
+                const leaveTypes = [
+                    { type: 'Vacation', reasons: ['Family vacation', 'Holiday trip', 'Rest and relaxation', 'Personal time off'] },
+                    { type: 'Sick Leave', reasons: ['Medical appointment', 'Illness', 'Health checkup', 'Recovery time'] },
+                    { type: 'Personal', reasons: ['Personal matters', 'Family emergency', 'Wedding', 'Religious observance'] },
+                    { type: 'Medical', reasons: ['Surgery', 'Medical treatment', 'Therapy session', 'Health consultation'] }
+                ]
+                
+                for (let i = 0; i < 25; i++) {
+                    const user = employees[Math.floor(Math.random() * employees.length)]
+                    const leaveType = leaveTypes[Math.floor(Math.random() * leaveTypes.length)]
+                    const reason = leaveType.reasons[Math.floor(Math.random() * leaveType.reasons.length)]
+                    
+                    // Create future dates for pending leaves
+                    const fromDate = new Date(Date.now() + Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000)
+                    const days = Math.floor(Math.random() * 5) + 1 // 1-5 days
+                    const toDate = new Date(fromDate.getTime() + (days - 1) * 24 * 60 * 60 * 1000)
+                    
+                    // 60% pending, 30% approved, 10% rejected
+                    const statusRand = Math.random()
+                    let status = 'pending'
+                    let reviewedBy = null
+                    
+                    if (statusRand > 0.6) {
+                        status = 'approved'
+                        reviewedBy = managers[Math.floor(Math.random() * managers.length)]?.id || null
+                    } else if (statusRand > 0.9) {
+                        status = 'rejected'
+                        reviewedBy = managers[Math.floor(Math.random() * managers.length)]?.id || null
                     }
+
+                    await addDoc(collection(db, 'leaves'), {
+                        uid: user.id,
+                        employee: user.name,
+                        from: fromDate.toISOString().split('T')[0],
+                        to: toDate.toISOString().split('T')[0],
+                        days,
+                        type: leaveType.type,
+                        reason,
+                        status,
+                        appliedAt: Date.now() - Math.floor(Math.random() * 15) * 24 * 60 * 60 * 1000,
+                        reviewedBy,
+                        reviewedAt: reviewedBy ? Date.now() - Math.floor(Math.random() * 5) * 24 * 60 * 60 * 1000 : null
+                    })
                 }
             }
 
@@ -367,6 +394,60 @@ export default function SeedPage() {
         } catch (e: any) {
             setStatus('Error')
             setProgress(`Error: ${e?.message || 'Unknown error occurred'}`)
+        }
+    }
+
+    const addMorePendingLeaves = async () => {
+        try {
+            setStatus('Adding pending leaves...')
+            setProgress('Creating additional pending leave requests...')
+            
+            const usersSnap = await getDocs(collection(db, 'users'))
+            const existingUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() } as any))
+            const employees = existingUsers.filter(u => u.role === 'employee')
+            
+            console.log('👥 Found employees:', employees.length)
+            
+            const leaveTypes = [
+                { type: 'Vacation', reasons: ['Family vacation', 'Holiday trip', 'Rest and relaxation', 'Personal time off'] },
+                { type: 'Sick Leave', reasons: ['Medical appointment', 'Illness', 'Health checkup', 'Recovery time'] },
+                { type: 'Personal', reasons: ['Personal matters', 'Family emergency', 'Wedding', 'Religious observance'] },
+                { type: 'Medical', reasons: ['Surgery', 'Medical treatment', 'Therapy session', 'Health consultation'] }
+            ]
+            
+            for (let i = 0; i < 10; i++) {
+                const user = employees[Math.floor(Math.random() * employees.length)]
+                const leaveType = leaveTypes[Math.floor(Math.random() * leaveTypes.length)]
+                const reason = leaveType.reasons[Math.floor(Math.random() * leaveType.reasons.length)]
+                
+                const fromDate = new Date(Date.now() + Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000)
+                const days = Math.floor(Math.random() * 3) + 1 // 1-3 days
+                const toDate = new Date(fromDate.getTime() + (days - 1) * 24 * 60 * 60 * 1000)
+
+                const leaveData = {
+                    uid: user.id,
+                    employee: user.name,
+                    from: fromDate.toISOString().split('T')[0],
+                    to: toDate.toISOString().split('T')[0],
+                    days,
+                    type: leaveType.type,
+                    reason,
+                    status: 'pending', // Always pending for this function
+                    appliedAt: Date.now() - Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000,
+                    reviewedBy: null,
+                    reviewedAt: null
+                }
+                
+                console.log('📝 Creating leave:', leaveData)
+                await addDoc(collection(db, 'leaves'), leaveData)
+            }
+            
+            setStatus('Completed')
+            setProgress('Added 10 more pending leave requests!')
+        } catch (error) {
+            console.error('Error adding pending leaves:', error)
+            setStatus('Error')
+            setProgress('Failed to add pending leaves')
         }
     }
 
@@ -410,13 +491,23 @@ export default function SeedPage() {
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4">
-                <button
-                    onClick={seed}
-                    disabled={status === 'Seeding...'}
-                    className="w-full px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-                >
-                    {status === 'Seeding...' ? 'Seeding Data...' : 'Start Seeding Process'}
-                </button>
+                <div className="space-y-3">
+                    <button
+                        onClick={seed}
+                        disabled={status === 'Seeding...'}
+                        className="w-full px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                    >
+                        {status === 'Seeding...' ? 'Seeding Data...' : 'Start Seeding Process'}
+                    </button>
+                    
+                    <button
+                        onClick={addMorePendingLeaves}
+                        disabled={status === 'Adding pending leaves...'}
+                        className="w-full px-6 py-3 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                    >
+                        {status === 'Adding pending leaves...' ? 'Adding Leaves...' : 'Add More Pending Leaves'}
+                    </button>
+                </div>
 
                 <div className="mt-4 space-y-2">
                     <div className="flex justify-between text-sm">

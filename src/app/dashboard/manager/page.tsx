@@ -39,12 +39,38 @@ export default function ManagerDashboard() {
     router.push('/dashboard/manager/team')
   }
 
-  // Dummy leave requests for when Firebase is empty
-  const dummyLeaves = [
-    { id: '1', employee: 'Rajesh Kumar', type: 'Vacation', days: 3, startDate: '2024-12-25', endDate: '2024-12-27', reason: 'Family vacation' },
-    { id: '2', employee: 'Priya Sharma', type: 'Sick Leave', days: 1, startDate: '2024-12-22', endDate: '2024-12-22', reason: 'Medical appointment' },
-    { id: '3', employee: 'Amit Reddy', type: 'Personal', days: 2, startDate: '2024-12-30', endDate: '2024-12-31', reason: 'Personal matters' }
-  ]
+  const refreshData = async () => {
+    setLoading(true)
+    try {
+      const [leavesData, teamData] = await Promise.all([
+        fsGetPendingLeaves(),
+        fsGetTeamMembers()
+      ])
+      
+      setLeaves(leavesData)
+      
+      if (teamData.length === 0) {
+        setTeamMembers([
+          { name: 'Rajesh Kumar', role: 'Senior Developer', status: 'online' },
+          { name: 'Priya Sharma', role: 'UI Designer', status: 'online' },
+          { name: 'Amit Reddy', role: 'Backend Dev', status: 'offline' },
+          { name: 'Sneha Mehta', role: 'QA Engineer', status: 'online' },
+          { name: 'Arjun Patel', role: 'DevOps', status: 'online' },
+          { name: 'Kavya Singh', role: 'Frontend Dev', status: 'online' },
+        ])
+      } else {
+        setTeamMembers(teamData.map(member => ({
+          name: member.name || 'Unknown',
+          role: member.department || 'Employee',
+          status: 'online'
+        })))
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,12 +80,11 @@ export default function ManagerDashboard() {
           fsGetTeamMembers()
         ])
         
-        // Use dummy data if no leaves found
-        if (leavesData.length === 0) {
-          setLeaves(dummyLeaves)
-        } else {
-          setLeaves(leavesData)
-        }
+        // console.log('📊 Manager Dashboard - Leaves Data:', leavesData)
+        // console.log('📊 Manager Dashboard - Team Data:', teamData)
+        
+        // Use real data from Firestore
+        setLeaves(leavesData)
         
         // Use dummy team data if no team members found
         if (teamData.length === 0) {
@@ -80,8 +105,8 @@ export default function ManagerDashboard() {
         }
       } catch (error) {
         console.error('Error fetching data:', error)
-        // Use dummy data on error
-        setLeaves(dummyLeaves)
+        // Use empty arrays on error
+        setLeaves([])
         setTeamMembers([
           { name: 'Rajesh Kumar', role: 'Senior Developer', status: 'online' },
           { name: 'Priya Sharma', role: 'UI Designer', status: 'online' },
@@ -95,14 +120,35 @@ export default function ManagerDashboard() {
       }
     }
     fetchData()
+    
+    // Refresh data every 30 seconds to catch new requests
+    const interval = setInterval(fetchData, 30000)
+    
+    // Refresh when page becomes visible (user returns from another page)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchData()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [])
 
   const handleLeaveDecision = async (id: string, decision: 'approved' | 'rejected') => {
     try {
-      await fsDecideLeave(id, decision)
-      setLeaves(prev => prev.filter(leave => leave.id !== id))
+      const result = await fsDecideLeave(id, decision)
+      if (result.success) {
+        setLeaves(prev => prev.filter(leave => leave.id !== id))
+      } else {
+        alert(`Failed to ${decision} leave: ${result.error || 'Unknown error'}`)
+      }
     } catch (error) {
       console.error('Error deciding leave:', error)
+      alert('Error processing leave request. Please try again.')
     }
   }
 
@@ -194,33 +240,42 @@ export default function ManagerDashboard() {
               </Button>
             </div>
             <div className="space-y-2">
-              {leaves.slice(0, 3).map((request, index) => (
-                <div key={index} className="p-3 rounded-xl bg-blue-600/20 border border-blue-500/30">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-white text-sm">{request.employee || 'Unknown'}</p>
-                      <p className="text-xs text-gray-300">{request.type} - {request.days} days</p>
+              {leaves.length > 0 ? (
+                leaves.slice(0, 3).map((request, index) => (
+                  <div key={index} className="p-3 rounded-xl bg-blue-600/20 border border-blue-500/30">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-white text-sm">{request.employee || 'Unknown Employee'}</p>
+                        <p className="text-xs text-gray-300">
+                          {request.type || 'Leave Request'} - {request.days && !isNaN(request.days) ? `${request.days} days` : 'N/A days'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-1"
+                        onClick={() => handleLeaveDecision(request.id, 'approved')}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 border-red-500 text-red-300 hover:bg-red-500 hover:text-white text-xs py-1"
+                        onClick={() => handleLeaveDecision(request.id, 'rejected')}
+                      >
+                        Reject
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-1"
-                      onClick={() => handleLeaveDecision(request.id, 'approved')}
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 border-red-500 text-red-300 hover:bg-red-500 hover:text-white text-xs py-1"
-                      onClick={() => handleLeaveDecision(request.id, 'rejected')}
-                    >
-                      Reject
-                    </Button>
-                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-gray-400">
+                  <p className="text-sm">No pending leave requests</p>
+                  <p className="text-xs mt-1">All caught up! 🎉</p>
                 </div>
-              ))}
+              )}
             </div>
           </GlassCard>
         </div>
