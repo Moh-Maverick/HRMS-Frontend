@@ -1,7 +1,6 @@
 "use client"
 import { GlassCard } from '@/components/dashboard/GlassCard'
-import { Button } from '@/components/ui/button'
-import { Cpu, Activity, Zap, RefreshCw, Settings as SettingsIcon } from 'lucide-react'
+import { Cpu, Activity, Zap } from 'lucide-react'
 
 const models = [
   {
@@ -47,18 +46,6 @@ const models = [
 ];
 
 export default function AdminAiMonitorPage() {
-    const handleRetrainModels = () => {
-        alert('Retraining all AI models... This may take several minutes.')
-    }
-
-    const handleModelSettings = (modelName: string) => {
-        alert(`Opening settings for ${modelName} model`)
-    }
-
-    const handleRefreshModel = (modelName: string) => {
-        alert(`Refreshing ${modelName} model...`)
-    }
-
     return (
     <div className="space-y-6 max-w-7xl">
       <div className="flex items-center justify-between">
@@ -66,10 +53,6 @@ export default function AdminAiMonitorPage() {
           <h2 className="text-3xl font-bold text-foreground mb-2">AI Models</h2>
           <p className="text-muted-foreground">Monitor and manage AI model performance</p>
         </div>
-        <Button className="gap-2" onClick={handleRetrainModels}>
-          <RefreshCw className="h-4 w-4" />
-          Retrain All Models
-        </Button>
       </div>
 
       {/* System Health */}
@@ -132,14 +115,6 @@ export default function AdminAiMonitorPage() {
                       {model.status}
                     </span>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="border-glass-border" onClick={() => handleModelSettings(model.name)}>
-                    <SettingsIcon className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="outline" className="border-glass-border" onClick={() => handleRefreshModel(model.name)}>
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
 
