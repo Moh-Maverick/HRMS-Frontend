@@ -52,7 +52,7 @@ FWC HRMS is a next-generation Human Resource Management System that leverages cu
 |**HR** | `test@gmail.com` | `test1234` | [HR Login](https://ai-interview-bot-seven.vercel.app/sign-in) |
 |**Admin** | `admin@interviewai.com` | `admin123456` | [Admin Login](https://ai-interview-bot-seven.vercel.app/admin/login) |
 
-> **Candidate Login**:For candidate login, when hr creates an interview a session id generated and is sent to given email id of the candidate id, for logging in use email and session id.
+> **Candidate Login**:For candidate login, when hr creates an interview a session id generated and is sent to given email id of the candidate id, for logging in use email and session id and logout from the hr account if signup page for candidate is not accessible.
 > 💡 **Quick Test**: Login with any account above to explore role-specific features and AI capabilities.
 
 ---
