@@ -203,8 +203,8 @@ FWC HRMS is a next-generation Human Resource Management System that leverages cu
 | Member | Role | Contributions |
 |--------|------|---------------|
 | **Mohit R** | Full-Stack Developer | Frontend development, UI/UX design, Firebase integration |
-| **Shreyas L** | Backend Developer + AI/ML services | AI Voice Interview Bot, Resume screening algorithms, FastAPI backend services |
-| **N V Karan** | AI/ML Engineer | HR Chatbot development, AI Job Description generation, Backend Integration |
+| **Shreyas L** | Backend Developer + AI/ML services | [AI Voice Interview Bot](https://github.com/Shreyas-077/AIinterviewBot), [Resume screening algorithms](https://github.com/Shreyas-077/HR-resume_screening), FastAPI backend services |
+| **N V Karan** | AI/ML Engineer | [HR Chatbot development](https://github.com/nvkaran17/AI-powered-HR-Chatbot.git), [AI Job Description generation](https://github.com/nvkaran17/AI-Job-Description-Generator), Backend Integration |
 
 ---
 
