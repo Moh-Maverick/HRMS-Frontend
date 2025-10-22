@@ -46,6 +46,13 @@ FWC HRMS is a next-generation Human Resource Management System that leverages cu
 | **Employee** | `employee@test.com` | `Test@1234` | [Employee Dashboard](https://hrms-skm.vercel.app/dashboard/employee) |
 | **Candidate** | `candidate@test.com` | `Test@1234` | [Candidate Dashboard](https://hrms-skm.vercel.app/dashboard/candidate) |
 
+**For ai-interview bot use the below credentials to use:**
+| Role | Email | Password | Dashboard Access |
+|------|-------|----------|------------------|
+|**HR** | `test@gmail.com` | `test1234` | [HR Login](https://ai-interview-bot-seven.vercel.app/sign-in) |
+|**Admin** | `admin@interviewai.com` | `admin123456` | [Admin Login](https://ai-interview-bot-seven.vercel.app/admin/login) |
+
+> **Candidate Login**:For candidate login, when hr creates an interview a session id generated and is sent to given email id of the candidate id, for logging in use email and session id.
 > 💡 **Quick Test**: Login with any account above to explore role-specific features and AI capabilities.
 
 ---
@@ -86,6 +93,7 @@ FWC HRMS is a next-generation Human Resource Management System that leverages cu
   - Token-based access system
   - Real-time interview assessment
   - Results tracking and analytics
+  - Email session codes - Receive unique session codes via email after interview creation
 - **Location**: HR Dashboard → Interviews → Schedule AI Interview
 
 ---
@@ -130,6 +138,8 @@ FWC HRMS is a next-generation Human Resource Management System that leverages cu
 - Python 3.10+
 - Firebase account
 - Google Gemini API key
+- Vapi workflow id and web token
+- Gmail: user mail and app password for sending candidates session id through mail
 
 #### Installation
 
@@ -193,8 +203,8 @@ FWC HRMS is a next-generation Human Resource Management System that leverages cu
 | Member | Role | Contributions |
 |--------|------|---------------|
 | **Mohit R** | Full-Stack Developer | Frontend development, UI/UX design, Firebase integration |
-| **N V Karan** | Backend Developer | HR Chatbot development, AI Job Description generation, FastAPI backend services |
-| **Shreyas L** | AI/ML Engineer | AI Voice Interview Bot, Resume screening algorithms, Backend Integration |
+| **Shreyas L** | Backend Developer + AI/ML services | AI Voice Interview Bot, Resume screening algorithms, FastAPI backend services |
+| **N V Karan** | AI/ML Engineer | HR Chatbot development, AI Job Description generation, Backend Integration |
 
 ---
 
