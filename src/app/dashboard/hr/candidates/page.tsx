@@ -1232,10 +1232,10 @@ HR Team`
                                 
                                 <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6 text-center">
                                     <div className="text-4xl font-bold text-green-400 mb-2">
-                                        {selectedApplication.skillAnalysis?.matched_required?.length || 0}
+                                        {(selectedApplication.skillAnalysis?.matched_required?.length || 0) + (selectedApplication.skillAnalysis?.matched_optional?.length || 0)}
                                     </div>
                                     <div className="text-slate-300 font-medium">Skills Match</div>
-                                    <div className="text-sm text-slate-400 mt-1">Required skills matched</div>
+                                    <div className="text-sm text-slate-400 mt-1">Total skills matched</div>
                                 </div>
                                 
                                 <div className="bg-slate-800 border border-blue-400/20 rounded-lg p-6 text-center">
@@ -1359,20 +1359,6 @@ HR Team`
                                             </div>
                                         )}
 
-                                        {/* Missing Required Skills */}
-                                        {selectedApplication.skillAnalysis.missing_required && selectedApplication.skillAnalysis.missing_required.length > 0 && (
-                                            <div>
-                                                <h4 className="text-slate-300 font-medium mb-3">Missing Required Skills</h4>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {selectedApplication.skillAnalysis.missing_required.map((skill: string, index: number) => (
-                                                        <span key={index} className="bg-red-600 text-white px-3 py-1 rounded-full text-sm flex items-center">
-                                                            <XCircle className="h-3 w-3 mr-1" />
-                                                            {skill}
-                                                        </span>
-        ))}
-      </div>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             )}

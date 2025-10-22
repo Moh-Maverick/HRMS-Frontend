@@ -703,6 +703,9 @@ export async function fsUpdateScreeningResults(applicationId: string, screeningD
         await updateDoc(applicationRef, {
             aiScore: screeningData.ai_score,
             screeningDetails: screeningData.analysis,
+            componentScores: screeningData.component_scores,
+            skillAnalysis: screeningData.skill_analysis,
+            keywordAnalysis: screeningData.keyword_analysis,
             screeningCompleted: true,
             screeningDate: new Date().toISOString()
         })

@@ -276,7 +276,18 @@ class ResumeScreeningService:
                                         break
                                 except AttributeError:
                                     continue
-                        skill_match_score = (matched_count / len(required_skills)) * 100
+                        
+                        # Calculate skill match percentage
+                        skill_match_percentage = (matched_count / len(required_skills)) * 100
+                        
+                        # Apply penalty for missing critical skills
+                        missing_skills_penalty = 0
+                        if matched_count < len(required_skills):
+                            missing_ratio = (len(required_skills) - matched_count) / len(required_skills)
+                            # Apply exponential penalty for missing skills
+                            missing_skills_penalty = missing_ratio * 30  # Up to 30% penalty
+                        
+                        skill_match_score = max(0, skill_match_percentage - missing_skills_penalty)
                 
                 # Calculate education score manually if needed
                 if education_score == 0:
