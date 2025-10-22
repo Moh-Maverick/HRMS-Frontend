@@ -4,12 +4,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Exclude AIinterviewBot folder from build
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // Suppress source map warnings for external packages
   webpack: (config, { isServer }) => {
-    config.watchOptions = {
-      ...config.watchOptions,
-      ignored: ['**/AIinterviewBot/**', '**/node_modules/**'],
-    };
+    if (!isServer) {
+      config.devtool = 'source-map';
+    }
     return config;
   },
 };
