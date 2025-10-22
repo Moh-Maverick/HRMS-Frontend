@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, Video, MapPin, Users, Search, ExternalLink, CheckCircle, XCircle, UserCheck, UserX } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { fsGetAllInterviews, fsMarkInterviewCreated, fsUpdateApplicationDecision } from '@/lib/firestoreApi'
-import { onSnapshot, query, collection } from 'firebase/firestore'
+import { onSnapshot, query, collection, doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
 export default function HRInterviewsPage() {
@@ -19,7 +19,7 @@ export default function HRInterviewsPage() {
         // Subscribe to real-time updates for interviews
         const q = query(collection(db, 'interviews'))
         
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
             const interviewsData = snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
             
             // Filter out invalid/placeholder entries - only show interviews with valid candidate data
@@ -32,7 +32,30 @@ export default function HRInterviewsPage() {
                 !isNaN(interview.createdAt)
             )
             
-            setInterviews(validInterviews)
+            // Fetch application data to get finalDecision status
+            const interviewsWithDecisions = await Promise.all(
+                validInterviews.map(async (interview) => {
+                    if (interview.applicationId) {
+                        try {
+                            const appDocRef = doc(db, 'applications', interview.applicationId)
+                            const appDoc = await getDoc(appDocRef)
+                            if (appDoc.exists()) {
+                                const appData = appDoc.data() as any
+                                return {
+                                    ...interview,
+                                    finalDecision: appData.finalDecision,
+                                    decisionDate: appData.decisionDate
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error fetching application data:', error)
+                        }
+                    }
+                    return interview
+                })
+            )
+            
+            setInterviews(interviewsWithDecisions)
             setLoading(false)
         })
 
@@ -67,11 +90,21 @@ export default function HRInterviewsPage() {
     }
 
     const handleAcceptCandidate = async (interview: any) => {
+        if (!confirm(`Are you sure you want to accept ${interview.candidateName} for ${interview.jobTitle}?`)) {
+            return
+        }
+
         try {
             const result = await fsUpdateApplicationDecision(interview.applicationId, 'accepted')
             
             if (result.success) {
-                alert('Candidate accepted successfully!')
+                // Update local state to reflect the decision
+                setInterviews(prev => prev.map(int => 
+                    int.id === interview.id 
+                        ? { ...int, finalDecision: 'accepted', status: 'completed' }
+                        : int
+                ))
+                alert('✅ Candidate accepted successfully! The candidate will be notified.')
             } else {
                 alert('Failed to accept candidate: ' + result.error)
             }
@@ -82,11 +115,21 @@ export default function HRInterviewsPage() {
     }
 
     const handleRejectCandidate = async (interview: any) => {
+        if (!confirm(`Are you sure you want to reject ${interview.candidateName} for ${interview.jobTitle}?`)) {
+            return
+        }
+
         try {
             const result = await fsUpdateApplicationDecision(interview.applicationId, 'rejected')
             
             if (result.success) {
-                alert('Candidate rejected successfully!')
+                // Update local state to reflect the decision
+                setInterviews(prev => prev.map(int => 
+                    int.id === interview.id 
+                        ? { ...int, finalDecision: 'rejected', status: 'completed' }
+                        : int
+                ))
+                alert('❌ Candidate rejected successfully! The candidate will be notified.')
             } else {
                 alert('Failed to reject candidate: ' + result.error)
             }
@@ -239,61 +282,80 @@ export default function HRInterviewsPage() {
                                     </div>
 
                                     <div className="flex flex-wrap gap-2">
-                                        {interview.status === 'pending_creation' && (
-                                            <Button 
-                                                size="sm" 
-                                                variant="outline" 
-                                                className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/20"
-                                                onClick={() => handleMarkInterviewCreated(interview)}
-                                            >
-                                                <CheckCircle className="h-4 w-4 mr-1" />
-                                                <span className="hidden sm:inline">Mark Created</span>
-                                                <span className="sm:hidden">Mark</span>
-                                            </Button>
+                                        {/* Show decision status if already decided */}
+                                        {interview.finalDecision === 'accepted' && (
+                                            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-4 py-2">
+                                                <CheckCircle className="h-4 w-4 mr-2" />
+                                                Accepted
+                                            </Badge>
                                         )}
                                         
-                                        {interview.status === 'created' && (
+                                        {interview.finalDecision === 'rejected' && (
+                                            <Badge className="bg-red-500/20 text-red-400 border-red-500/30 px-4 py-2">
+                                                <XCircle className="h-4 w-4 mr-2" />
+                                                Rejected
+                                            </Badge>
+                                        )}
+
+                                        {/* Show action buttons if no decision made yet */}
+                                        {!interview.finalDecision && (
                                             <>
-                                                <Button 
-                                                    size="sm" 
-                                                    className="bg-green-500 hover:bg-green-600 text-white"
-                                                    onClick={() => handleAcceptCandidate(interview)}
-                                                >
-                                                    <UserCheck className="h-4 w-4 mr-1" />
-                                                    Accept
-                                                </Button>
-                                                <Button 
-                                                    size="sm" 
-                                                    variant="outline" 
-                                                    className="border-red-500 text-red-400 hover:bg-red-500/20"
-                                                    onClick={() => handleRejectCandidate(interview)}
-                                                >
-                                                    <UserX className="h-4 w-4 mr-1" />
-                                                    Reject
-                                                </Button>
-                                                <Button 
-                                                    size="sm" 
-                                                    className="gap-2"
-                                                    onClick={() => handleViewInterviewResults(interview)}
-                                                >
-                                                    <ExternalLink className="h-4 w-4" />
-                                                    <span className="hidden sm:inline">View Results</span>
-                                                    <span className="sm:hidden">Results</span>
-                                                </Button>
+                                                {interview.status === 'pending_creation' && (
+                                                    <>
+                                                        <Button 
+                                                            size="sm" 
+                                                            variant="outline" 
+                                                            className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/20"
+                                                            onClick={() => handleMarkInterviewCreated(interview)}
+                                                        >
+                                                            <CheckCircle className="h-4 w-4 mr-1" />
+                                                            <span className="hidden sm:inline">Mark Created</span>
+                                                            <span className="sm:hidden">Mark</span>
+                                                        </Button>
+                                                        <Button 
+                                                            size="sm" 
+                                                            variant="outline" 
+                                                            className="border-glass-border"
+                                                            onClick={() => window.open('https://ai-interview-bot-seven.vercel.app/sign-in', '_blank')}
+                                                        >
+                                                            <Video className="h-4 w-4 mr-1" />
+                                                            <span className="hidden sm:inline">Create Interview</span>
+                                                            <span className="sm:hidden">Create</span>
+                                                        </Button>
+                                                    </>
+                                                )}
+                                                
+                                                {interview.status === 'created' && (
+                                                    <>
+                                                        <Button 
+                                                            size="sm" 
+                                                            className="bg-green-500 hover:bg-green-600 text-white"
+                                                            onClick={() => handleAcceptCandidate(interview)}
+                                                        >
+                                                            <UserCheck className="h-4 w-4 mr-1" />
+                                                            Accept
+                                                        </Button>
+                                                        <Button 
+                                                            size="sm" 
+                                                            variant="outline" 
+                                                            className="border-red-500 text-red-400 hover:bg-red-500/20"
+                                                            onClick={() => handleRejectCandidate(interview)}
+                                                        >
+                                                            <UserX className="h-4 w-4 mr-1" />
+                                                            Reject
+                                                        </Button>
+                                                        <Button 
+                                                            size="sm" 
+                                                            className="gap-2"
+                                                            onClick={() => handleViewInterviewResults(interview)}
+                                                        >
+                                                            <ExternalLink className="h-4 w-4" />
+                                                            <span className="hidden sm:inline">View Results</span>
+                                                            <span className="sm:hidden">Results</span>
+                                                        </Button>
+                                                    </>
+                                                )}
                                             </>
-                                        )}
-                                        
-                                        {interview.status === 'pending_creation' && (
-                                            <Button 
-                                                size="sm" 
-                                                variant="outline" 
-                                                className="border-glass-border"
-                                                onClick={() => window.open('https://ai-interview-bot-seven.vercel.app/sign-in', '_blank')}
-                                            >
-                                                <Video className="h-4 w-4 mr-1" />
-                                                <span className="hidden sm:inline">Create Interview</span>
-                                                <span className="sm:hidden">Create</span>
-                                            </Button>
                                         )}
                                     </div>
                                 </div>
